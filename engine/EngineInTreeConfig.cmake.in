@@ -1,0 +1,50 @@
+@PACKAGE_INIT@
+include(CMakeFindDependencyMacro)
+include(FeatureSummary)
+
+find_dependency(glm 1.1.0)
+find_dependency(Ktx 4.4)
+find_dependency(GLEW)
+find_dependency(OpenGL)
+find_dependency(Vulkan COMPONENTS glslc)
+
+find_program(SHADER_HEADER_GEN_COMMAND NAMES shader_header_gen.py PATHS ${CMAKE_CURRENT_LIST_DIR} ${PACKAGE_PREFIX_DIR}/engine/cmake REQUIRED)
+find_program(SPIRV_CROSS_COMMAND NAMES spirv-cross REQUIRED)
+find_program(XXD_COMMAND NAMES xxd REQUIRED)
+
+include(${PACKAGE_PREFIX_DIR}/engine/cmake/EmbedBinary.cmake)
+
+set(_EG_COMPS Elog Base 2D)
+#foreach (_comp ${Engine_FIND_COMPONENTS})
+#    if (NOT _comp IN_LIST _EG_COMPS)
+#        set(Engine_FOUND False)
+#        set(Engine_NOT_FOUND_MESSAGE "Unsupported component: ${_comp}")
+#    else()
+#        set(Engine_${_comp}_FOUND True)
+#    endif()
+#
+#endforeach()
+
+foreach(_comp ${Engine_FIND_COMPONENTS})
+    if (NOT _comp IN_LIST _EG_COMPS)
+        set(Engine_FOUND False)
+        set(Engine_NOT_FOUND_MESSAGE "Unsupported component: ${_comp}")
+    endif()
+    if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/Engine${_comp}Targets.cmake)
+        include(${CMAKE_CURRENT_LIST_DIR}/Engine${_comp}Targets.cmake)
+        set(Engine_${_comp}_FOUND True)
+    else()
+        set(Engine_${_comp}_FOUND False)
+    endif()
+endforeach()
+
+# include(${CMAKE_CURRENT_LIST_DIR}/glmTargets.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/VFSppTargets.cmake)
+
+#include(${CMAKE_CURRENT_LIST_DIR}/EngineTargets.cmake)
+check_required_components(Engine)
+set_package_properties(Engine PROPERTIES
+DESCRIPTION "Game Engine for 2d and 3d"
+)
+add_feature_info(Engine2d Engine_2D_FOUND "2D Engine Api")
+add_feature_info(EngineLogging Engine_Elog_FOUND "Engine Logging Api")

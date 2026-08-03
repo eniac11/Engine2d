@@ -1,0 +1,35 @@
+@PACKAGE_INIT@
+include(CMakeFindDependencyMacro)
+include(FeatureSummary)
+
+find_dependency(glm 1.1.0)
+find_dependency(Ktx 4.4)
+find_dependency(GLEW)
+find_dependency(OpenGL)
+find_dependency(Vulkan COMPONENTS glslc)
+find_dependency(VFSpp 1.0)
+
+set(_EG_COMPS Elog Base 2D)
+
+find_program(SHADER_HEADER_GEN_COMMAND NAMES shader_header_gen.py PATHS ${CMAKE_CURRENT_LIST_DIR} REQUIRED)
+find_program(SPIRV_CROSS_COMMAND NAMES spirv-cross REQUIRED)
+find_program(XXD_COMMAND NAMES xxd REQUIRED)
+
+include(${CMAKE_CURRENT_LIST_DIR}/EmbedBinary.cmake)
+
+foreach(_comp ${Engine_FIND_COMPONENTS})
+    if (NOT _comp IN_LIST _EG_COMPS)
+        set(Engine_FOUND False)
+        set(Engine_NOT_FOUND_MESSAGE "Unsupported component: ${_comp}")
+    endif()
+    if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/Engine${_comp}Targets.cmake)
+        include(${CMAKE_CURRENT_LIST_DIR}/Engine${_comp}Targets.cmake)
+        set(Engine_${_comp}_FOUND True)
+    else()
+        set(Engine_${_comp}_FOUND False)
+    endif()
+endforeach()
+check_required_components(Engine)
+set_package_properties(Engine PROPERTIES
+    DESCRIPTION "Game Engine for 2d and 3d"
+)

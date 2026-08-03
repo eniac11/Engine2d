@@ -1,0 +1,309 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 8e5129c..ec9cbef 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -205,7 +205,7 @@ macro(spirv_cross_add_library name config_name library_type)
+ 			ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+ 			PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/spirv_cross)
+ 		install(FILES ${hdrs} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/spirv_cross)
+-		install(EXPORT ${config_name}Config DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${config_name}/cmake)
++		install(EXPORT ${config_name}Config DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${config_name})
+ 		export(TARGETS ${name} FILE ${config_name}Config.cmake)
+ 	endif()
+ endmacro()
+@@ -427,25 +427,6 @@ if (SPIRV_CROSS_SHARED)
+ endif()
+ 
+ if (SPIRV_CROSS_CLI)
+-	if (NOT SPIRV_CROSS_ENABLE_GLSL)
+-		message(FATAL_ERROR "Must enable GLSL if building CLI.")
+-	endif()
+-
+-	if (NOT SPIRV_CROSS_ENABLE_HLSL)
+-		message(FATAL_ERROR "Must enable HLSL if building CLI.")
+-	endif()
+-
+-	if (NOT SPIRV_CROSS_ENABLE_MSL)
+-		message(FATAL_ERROR "Must enable MSL if building CLI.")
+-	endif()
+-
+-	if (NOT SPIRV_CROSS_ENABLE_CPP)
+-		message(FATAL_ERROR "Must enable C++ if building CLI.")
+-	endif()
+-
+-	if (NOT SPIRV_CROSS_ENABLE_REFLECT)
+-		message(FATAL_ERROR "Must enable reflection if building CLI.")
+-	endif()
+ 
+ 	if (NOT SPIRV_CROSS_ENABLE_UTIL)
+ 		message(FATAL_ERROR "Must enable utils if building CLI.")
+@@ -454,6 +435,7 @@ if (SPIRV_CROSS_CLI)
+ 	if (NOT SPIRV_CROSS_STATIC)
+ 		message(FATAL_ERROR "Must build static libraries if building CLI.")
+ 	endif()
++
+ 	add_executable(spirv-cross main.cpp)
+ 	target_compile_options(spirv-cross PRIVATE ${spirv-compiler-options})
+ 	target_include_directories(spirv-cross PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+@@ -471,6 +453,32 @@ if (SPIRV_CROSS_CLI)
+ 			spirv-cross-util
+ 			spirv-cross-core)
+ 
++	if (SPIRV_CROSS_ENABLE_GLSL)
++		target_compile_definitions(spirv-cross PRIVATE BUILD_GLSL)
++		target_link_libraries(spirv-cross PRIVATE spirv-cross-glsl)
++	endif()
++
++	if (SPIRV_CROSS_ENABLE_HLSL)
++		target_compile_definitions(spirv-cross PRIVATE BUILD_HLSL)
++		target_link_libraries(spirv-cross PRIVATE spirv-cross-hlsl)
++	endif()
++
++	if (SPIRV_CROSS_ENABLE_MSL)
++		target_compile_definitions(spirv-cross PRIVATE BUILD_MSL)
++		target_link_libraries(spirv-cross PRIVATE spirv-cross-msl)
++	endif()
++
++	if (SPIRV_CROSS_ENABLE_CPP)
++		target_compile_definitions(spirv-cross PRIVATE BUILD_CPP)
++		target_link_libraries(spirv-cross PRIVATE spirv-cross-cpp)
++	endif()
++
++	if (SPIRV_CROSS_ENABLE_REFLECT)
++		target_compile_definitions(spirv-cross PRIVATE BUILD_REFLECT)
++		target_link_libraries(spirv-cross PRIVATE spirv-cross-reflect)
++	endif()
++
++
+ 	if (SPIRV_CROSS_ENABLE_TESTS)
+ 		# Set up tests, using only the simplest modes of the test_shaders
+ 		# script.  You have to invoke the script manually to:
+diff --git a/main.cpp b/main.cpp
+index b48c1c3..049de21 100644
+--- a/main.cpp
++++ b/main.cpp
+@@ -533,6 +533,7 @@ static void print_resources(const Compiler &compiler, const ShaderResources &res
+ 	print_resources(compiler, "images", res.storage_images);
+ 	print_resources(compiler, "ssbos", res.storage_buffers);
+ 	print_resources(compiler, "ubos", res.uniform_buffers);
++	print_resources(compiler, "uniforms", res.gl_plain_uniforms);
+ 	print_resources(compiler, "push", res.push_constant_buffers);
+ 	print_resources(compiler, "counters", res.atomic_counters);
+ 	print_resources(compiler, "acceleration structures", res.acceleration_structures);
+@@ -775,7 +776,7 @@ static void print_help_backend()
+ 	);
+ 	// clang-format on
+ }
+-
++#ifdef BUILD_GLSL
+ static void print_help_glsl()
+ {
+ 	// clang-format off
+@@ -824,7 +825,9 @@ static void print_help_glsl()
+ 	);
+ 	// clang-format on
+ }
++#endif
+ 
++#ifdef BUILD_HLSL
+ static void print_help_hlsl()
+ {
+ 	// clang-format off
+@@ -857,7 +860,9 @@ static void print_help_hlsl()
+ 	);
+ 	// clang-format on
+ }
++#endif
+ 
++#ifdef BUILD_MSL
+ static void print_help_msl()
+ {
+ 	// clang-format off
+@@ -996,6 +1001,7 @@ static void print_help_msl()
+ 	                "\t[--msl-default-point-size <size>]:\n\t\tApplies a default value if BuiltInPointSize is not written.\n");
+ 	// clang-format on
+ }
++#endif
+ 
+ static void print_help_common()
+ {
+@@ -1060,9 +1066,15 @@ static void print_help()
+ 
+ 	print_help_backend();
+ 	print_help_common();
++	#ifdef BUILD_GLSL
+ 	print_help_glsl();
++	#endif
++	#ifdef BUILD_MSL
+ 	print_help_msl();
++	#endif
++	#ifdef BUILD_HLSL
+ 	print_help_hlsl();
++	#endif
+ 	print_help_obscure();
+ }
+ 
+@@ -1213,14 +1225,18 @@ static string compile_iteration(const CLIArguments &args, std::vector<uint32_t>
+ 	unique_ptr<CompilerGLSL> compiler;
+ 	bool combined_image_samplers = false;
+ 	bool build_dummy_sampler = false;
+-
+-	if (args.cpp)
++	bool done_compiler_select = false;
++	#ifdef BUILD_CPP
++	if (!done_compiler_select && args.cpp)
+ 	{
+ 		compiler.reset(new CompilerCPP(std::move(spirv_parser.get_parsed_ir())));
+ 		if (args.cpp_interface_name)
+ 			static_cast<CompilerCPP *>(compiler.get())->set_interface_name(args.cpp_interface_name);
++		done_compiler_select = true;
+ 	}
+-	else if (args.msl)
++	#endif
++	#ifdef BUILD_MSL
++	if (!done_compiler_select && args.msl)
+ 	{
+ 		compiler.reset(new CompilerMSL(std::move(spirv_parser.get_parsed_ir())));
+ 
+@@ -1295,15 +1311,22 @@ static string compile_iteration(const CLIArguments &args, std::vector<uint32_t>
+ 			msl_comp->add_msl_shader_output(v);
+ 		if (args.msl_combined_sampler_suffix)
+ 			msl_comp->set_combined_sampler_suffix(args.msl_combined_sampler_suffix);
++		done_compiler_select = true;
+ 	}
+-	else if (args.hlsl)
++	#endif
++	#ifdef BUILD_HLSL
++	if (!done_compiler_select && args.hlsl) {
+ 		compiler.reset(new CompilerHLSL(std::move(spirv_parser.get_parsed_ir())));
+-	else
++		done_compiler_select = true;
++	}
++	#endif
++	if (!done_compiler_select)
+ 	{
+ 		combined_image_samplers = !args.vulkan_semantics;
+ 		if (!args.vulkan_semantics || args.vulkan_glsl_disable_ext_samplerless_texture_functions)
+ 			build_dummy_sampler = true;
+ 		compiler.reset(new CompilerGLSL(std::move(spirv_parser.get_parsed_ir())));
++		done_compiler_select = true;
+ 	}
+ 
+ 	if (!args.variable_type_remaps.empty())
+@@ -1434,6 +1457,7 @@ static string compile_iteration(const CLIArguments &args, std::vector<uint32_t>
+ 	for (auto &fetch : args.glsl_ext_framebuffer_fetch)
+ 		compiler->remap_ext_framebuffer_fetch(fetch.first, fetch.second, !args.glsl_ext_framebuffer_fetch_noncoherent);
+ 
++	#ifdef BUILD_HLSL
+ 	// Set HLSL specific options.
+ 	if (args.hlsl)
+ 	{
+@@ -1483,6 +1507,7 @@ static string compile_iteration(const CLIArguments &args, std::vector<uint32_t>
+ 			                                  args.hlsl_base_vertex_index_register_space);
+ 		}
+ 	}
++	#endif
+ 
+ 	if (build_dummy_sampler)
+ 	{
+@@ -1559,6 +1584,7 @@ static string compile_iteration(const CLIArguments &args, std::vector<uint32_t>
+ 		}
+ 	}
+ 
++	#ifdef BUILD_HLSL
+ 	if (args.hlsl)
+ 	{
+ 		auto *hlsl_compiler = static_cast<CompilerHLSL *>(compiler.get());
+@@ -1586,6 +1612,7 @@ static string compile_iteration(const CLIArguments &args, std::vector<uint32_t>
+ 			}
+ 		}
+ 	}
++	#endif
+ 
+ 	auto ret = compiler->compile();
+ 
+@@ -1633,10 +1660,19 @@ static int main_inner(int argc, char *argv[])
+ 	cbs.add("--fixup-clipspace", [&args](CLIParser &) { args.fixup = true; });
+ 	cbs.add("--flip-vert-y", [&args](CLIParser &) { args.yflip = true; });
+ 	cbs.add("--iterations", [&args](CLIParser &parser) { args.iterations = parser.next_uint(); });
++	#ifdef BUILD_CPP
+ 	cbs.add("--cpp", [&args](CLIParser &) { args.cpp = true; });
++	#endif
++	#ifdef BUILD_REFLECT
+ 	cbs.add("--reflect", [&args](CLIParser &parser) { args.reflect = parser.next_value_string("json"); });
++	#endif
++	#ifdef BUILD_CPP
+ 	cbs.add("--cpp-interface-name", [&args](CLIParser &parser) { args.cpp_interface_name = parser.next_string(); });
++	#endif
++	#ifdef BUILD_MSL
+ 	cbs.add("--metal", [&args](CLIParser &) { args.msl = true; }); // Legacy compatibility
++	#endif
++	#ifdef BUILD_GLSL
+ 	cbs.add("--glsl-emit-push-constant-as-ubo", [&args](CLIParser &) { args.glsl_emit_push_constant_as_ubo = true; });
+ 	cbs.add("--glsl-emit-ubo-as-plain-uniforms", [&args](CLIParser &) { args.glsl_emit_ubo_as_plain_uniforms = true; });
+ 	cbs.add("--glsl-force-flattened-io-blocks", [&args](CLIParser &) { args.glsl_force_flattened_io_blocks = true; });
+@@ -1651,11 +1687,15 @@ static int main_inner(int argc, char *argv[])
+ 	});
+ 	cbs.add("--vulkan-glsl-disable-ext-samplerless-texture-functions",
+ 	        [&args](CLIParser &) { args.vulkan_glsl_disable_ext_samplerless_texture_functions = true; });
++	#endif
+ 	cbs.add("--disable-storage-image-qualifier-deduction",
+ 	        [&args](CLIParser &) { args.enable_storage_image_qualifier_deduction = false; });
+ 	cbs.add("--force-zero-initialized-variables",
+ 	        [&args](CLIParser &) { args.force_zero_initialized_variables = true; });
++	#ifdef BUILD_MSL
+ 	cbs.add("--msl", [&args](CLIParser &) { args.msl = true; });
++	#endif
++	#ifdef BUILD_HLSL
+ 	cbs.add("--hlsl", [&args](CLIParser &) { args.hlsl = true; });
+ 	cbs.add("--hlsl-enable-compat", [&args](CLIParser &) { args.hlsl_compat = true; });
+ 	cbs.add("--hlsl-support-nonzero-basevertex-baseinstance",
+@@ -1677,10 +1717,12 @@ static int main_inner(int argc, char *argv[])
+ 	        [&args](CLIParser &) { args.hlsl_flatten_matrix_vertex_input_semantics = true; });
+ 	cbs.add("--hlsl-preserve-structured-buffers", [&args](CLIParser &) { args.hlsl_preserve_structured_buffers = true; });
+ 	cbs.add("--hlsl-user-semantic", [&args](CLIParser &) { args.hlsl_user_semantic = true; });
++	#endif
+ 	cbs.add("--vulkan-semantics", [&args](CLIParser &) { args.vulkan_semantics = true; });
+ 	cbs.add("-V", [&args](CLIParser &) { args.vulkan_semantics = true; });
+ 	cbs.add("--flatten-multidimensional-arrays", [&args](CLIParser &) { args.flatten_multidimensional_arrays = true; });
+ 	cbs.add("--no-420pack-extension", [&args](CLIParser &) { args.use_420pack_extension = false; });
++	#ifdef BUILD_MSL
+ 	cbs.add("--msl-capture-output", [&args](CLIParser &) { args.msl_capture_output_to_buffer = true; });
+ 	cbs.add("--msl-swizzle-texture-samples", [&args](CLIParser &) { args.msl_swizzle_texture_samples = true; });
+ 	cbs.add("--msl-ios", [&args](CLIParser &) { args.msl_ios = true; });
+@@ -1852,6 +1894,7 @@ static int main_inner(int argc, char *argv[])
+ 		args.msl_enable_point_size_default = true;
+ 		args.msl_default_point_size = static_cast<float>(parser.next_double());
+ 	});
++	#endif
+ 	cbs.add("--extension", [&args](CLIParser &parser) { args.extensions.push_back(parser.next_string()); });
+ 	cbs.add("--rename-entry-point", [&args](CLIParser &parser) {
+ 		auto old_name = parser.next_string();
+@@ -1862,6 +1905,7 @@ static int main_inner(int argc, char *argv[])
+ 	cbs.add("--entry", [&args](CLIParser &parser) { args.entry = parser.next_string(); });
+ 	cbs.add("--stage", [&args](CLIParser &parser) { args.entry_stage = parser.next_string(); });
+ 	cbs.add("--separate-shader-objects", [&args](CLIParser &) { args.sso = true; });
++	#ifdef BUILD_HLSL
+ 	cbs.add("--set-hlsl-vertex-input-semantic", [&args](CLIParser &parser) {
+ 		HLSLVertexAttributeRemap remap;
+ 		remap.location = parser.next_uint();
+@@ -1874,6 +1918,7 @@ static int main_inner(int argc, char *argv[])
+ 		remap.semantic = parser.next_string();
+ 		args.hlsl_attr_remap_named.push_back(std::move(remap));
+ 	});
++	#endif
+ 
+ 	cbs.add("--remap", [&args](CLIParser &parser) {
+ 		string src = parser.next_string();
+diff --git a/spirv_reflect.cpp b/spirv_reflect.cpp
+index 3807613..9d2c0d2 100644
+--- a/spirv_reflect.cpp
++++ b/spirv_reflect.cpp
+@@ -552,6 +552,7 @@ void CompilerReflection::emit_resources()
+ 	emit_resources("images", res.storage_images);
+ 	emit_resources("ssbos", res.storage_buffers);
+ 	emit_resources("ubos", res.uniform_buffers);
++	emit_resources("uniforms", res.gl_plain_uniforms);
+ 	emit_resources("push_constants", res.push_constant_buffers);
+ 	emit_resources("counters", res.atomic_counters);
+ 	emit_resources("acceleration_structures", res.acceleration_structures);

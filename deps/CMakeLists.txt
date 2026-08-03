@@ -1,0 +1,92 @@
+cmake_minimum_required(VERSION 3.28)
+
+project(2dRenderEngine-deps)
+
+
+include(ExternalProject)
+include(GNUInstallDirs)
+
+# Provides:
+# - libktx: patched to not required opengl functions to be initalised manually
+# - spirv-cross: patched to emit more json data
+
+ExternalProject_Add(ktx-software
+        GIT_REPOSITORY https://github.com/KhronosGroup/KTX-Software.git
+        GIT_TAG v4.4.2
+        GIT_SHALLOW YES
+        # PATCH_COMMAND "sh -c 'git apply ${CMAKE_CURRENT_LIST_DIR}/ktx-v4.4.2-patches.patch || true'"
+        PATCH_COMMAND PATCH_FILE=${CMAKE_CURRENT_LIST_DIR}/ktx-v4.4.2-patches.patch ${CMAKE_CURRENT_LIST_DIR}/apply-patch.sh
+        CMAKE_CACHE_ARGS
+            -DKTX_FEATURE_JS:BOOL=OFF
+            -DKTX_FEATURE_TOOLS:BOOL=ON
+            -DKTX_FEATURE_GL_UPLOAD:BOOL=ON
+            -DKTX_FEATURE_VK_UPLOAD:BOOL=OFF
+            -DBUILD_TESTING:BOOL=OFF
+        -DCMAKE_INSTALL_PREFIX:STRING=${CMAKE_INSTALL_PREFIX}
+        -DCMAKE_BUILD_RPATH:STRING=${CMAKE_BUILD_RPATH}
+        -DCMAKE_INSTALL_RPATH:STRING=${CMAKE_INSTALL_RPATH};${CMAKE_INSTALL_FULL_LIBDIR}
+        -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
+)
+
+ExternalProject_Add(spirv-cross
+        GIT_REPOSITORY https://github.com/KhronosGroup/SPIRV-Cross.git
+        GIT_TAG 998146d76fc5cbb2726f44c55e25fa28a573a782
+#        GIT_SHALLOW YES
+        PATCH_COMMAND PATCH_FILE=${CMAKE_CURRENT_LIST_DIR}/spirv-cross-998146d76fc5cbb2726f44c55e25fa28a573a782.patch ${CMAKE_CURRENT_LIST_DIR}/apply-patch.sh
+        USES_TERMINAL_PATCH ON
+        CMAKE_CACHE_ARGS
+            -DSPIRV_CROSS_ENABLE_GLSL:BOOL=ON
+            -DSPIRV_CROSS_ENABLE_HLSL:BOOL=OFF
+            -DSPIRV_CROSS_ENABLE_MSL:BOOL=OFF
+            -DSPIRV_CROSS_ENABLE_CPP:BOOL=OFF
+            -DSPIRV_CROSS_ENABLE_UTIL:BOOL=ON
+            -DSPIRV_CROSS_ENABLE_C_API:BOOL=OFF
+            -DBUILD_TESTING:BOOL=OFF
+        -DCMAKE_INSTALL_PREFIX:STRING=${CMAKE_INSTALL_PREFIX}
+        -DCMAKE_BUILD_RPATH:STRING=${CMAKE_BUILD_RPATH}
+        -DCMAKE_INSTALL_RPATH:STRING=${CMAKE_INSTALL_RPATH};${CMAKE_INSTALL_FULL_LIBDIR}
+        -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
+)
+
+ExternalProject_Add(glm
+        GIT_REPOSITORY https://github.com/g-truc/glm.git
+        GIT_TAG e7970a8b26732f1b0df9690f7180546f8c30e48e
+
+#        GIT_SHALLOW YES
+        CMAKE_CACHE_ARGS
+            -DGLM_ENABLE_LANG_EXTENSIONS:BOOL=ON
+            -DGLM_ENABLE_SIMD_SSE2:BOOL=ON
+            -DGLM_BUILD_INSTALL:BOOL=YES
+            -DGLM_BUILD_LIBRARY:BOOL=ON
+            -DCMAKE_CXX_FLAGS:STRING=\-DGLM_ENABLE_EXPERIMENTAL\ \-DGLM_FORCE_DEFAULT_ALIGNED_GENTYPES
+        -DCMAKE_INSTALL_PREFIX:STRING=${CMAKE_INSTALL_PREFIX}
+        -DCMAKE_BUILD_RPATH:STRING=${CMAKE_BUILD_RPATH}
+        -DCMAKE_INSTALL_RPATH:STRING=${CMAKE_INSTALL_RPATH};${CMAKE_INSTALL_FULL_LIBDIR}
+        -DCMAKE_INSTALL_DATAROOTDIR:STRING=${CMAKE_INSTALL_LIBDIR}/cmake
+        -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
+)
+
+# FIXME: Vendoring Need to recompile against newer libstdc++. Solution: Remove on upgrade to 26.04
+set(GOOGLETEST_VERSION_SUFFIX 1.14.0)
+ExternalProject_Add(googletest
+        DOWNLOAD_COMMAND "${CMAKE_CURRENT_LIST_DIR}/download-using-apt-googletest.sh"
+        SOURCE_SUBDIR "googletest-${GOOGLETEST_VERSION_SUFFIX}"
+        CMAKE_CACHE_ARGS
+        -DCMAKE_INSTALL_PREFIX:STRING=${CMAKE_INSTALL_PREFIX}
+        -DCMAKE_BUILD_RPATH:STRING=${CMAKE_BUILD_RPATH}
+        -DCMAKE_INSTALL_RPATH:STRING=${CMAKE_INSTALL_RPATH};${CMAKE_INSTALL_FULL_LIBDIR}
+        -DBUILD_SHARED_LIBS:BOOL="${BUILD_SHARED_LIBS}"
+)
+
+# FIXME: either use prebuilt or FetchContent or vendor
+ExternalProject_Add(dwarfs
+        GIT_REPOSITORY https://github.com/mhx/dwarfs.git
+        GIT_TAG v0.15.6
+        GIT_SHALLOW YES
+        CMAKE_CACHE_ARGS
+        -DWITH_MAN_PAGES:BOOL=OFF
+        -DCMAKE_INSTALL_PREFIX:STRING=${CMAKE_INSTALL_PREFIX}
+        -DCMAKE_BUILD_RPATH:STRING=${CMAKE_BUILD_RPATH}
+        -DCMAKE_INSTALL_RPATH:STRING=${CMAKE_INSTALL_RPATH};${CMAKE_INSTALL_FULL_LIBDIR}
+        -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
+)

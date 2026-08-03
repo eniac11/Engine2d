@@ -1,0 +1,48 @@
+{
+    "version": 6,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 28,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "default",
+            "displayName": "Default Config",
+            "description": "Default build using Ninja generator",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_CXX_COMPILER": "/usr/local/bin/g++",
+                "CMAKE_C_COMPILER": "/usr/local/bin/gcc",
+                "CMAKE_BUILD_RPATH": "/usr/local/lib64",
+                "CMAKE_INSTALL_RPATH": "/usr/local/lib64",
+                "ENGINE_ELOG_USE_SOURCE_LOCATION": "OFF",
+                "CMAKE_CXX_FLAGS": "-Wall",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install_prefix"
+            }
+        },
+        {
+            "name": "ninja-multi",
+            "inherits": "default",
+            "displayName": "Ninja Multi-Config",
+            "description": "Default build using Ninja Multi-Config generator",
+            "generator": "Ninja Multi-Config",
+            "cacheVariables": {
+                "CMAKE_CONFIGURATION_TYPES": "Debug;Release"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "debug",
+            "configurePreset": "ninja-multi",
+            "configuration": "Debug"
+        },
+        {
+            "name": "release",
+            "configurePreset": "ninja-multi",
+            "configuration": "Release"
+        }
+    ]
+}

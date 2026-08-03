@@ -1,0 +1,105 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 5712cf8..38173d1 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -42,7 +42,7 @@ endif()
+ option( KTX_FEATURE_DOC "Create KTX documentation." OFF )
+ option( KTX_FEATURE_JNI "Create Java bindings for libktx." OFF )
+ option( KTX_FEATURE_PY "Create Python source distribution." OFF )
+-option( KTX_FEATURE_TESTS "Create unit tests." ON )
++cmake_dependent_option( KTX_FEATURE_TESTS "Create unit tests." ON BUILD_TESTING OFF)
+ option( KTX_FEATURE_TOOLS_CTS "Enable KTX CLI Tools CTS tests (requires CTS submodule)." OFF )
+ option( KTX_FEATURE_ETC_UNPACK "ETC decoding support." ON )
+ 
+diff --git a/external/fmt/include/fmt/format.h b/external/fmt/include/fmt/format.h
+index 50e5714..f5f702e 100644
+--- a/external/fmt/include/fmt/format.h
++++ b/external/fmt/include/fmt/format.h
+@@ -47,6 +47,7 @@
+ #  include <cstring>  // std::memcpy
+ #  include <limits>   // std::numeric_limits
+ #  include <new>      // std::bad_alloc
++#include <cstdlib>    // malloc
+ #  if defined(__GLIBCXX__) && !defined(_GLIBCXX_USE_DUAL_ABI)
+ // Workaround for pre gcc 5 libstdc++.
+ #    include <memory>  // std::allocator_traits
+diff --git a/include/ktx.h b/include/ktx.h
+index 8889c91..21cbf7d 100644
+--- a/include/ktx.h
++++ b/include/ktx.h
+@@ -96,6 +96,7 @@ typedef unsigned char ktx_uint32_t_SIZE_ASSERT[sizeof(ktx_uint32_t) == 4];
+  * Presumably everybody is using platform default compilers not c99 or else
+  * they are using C++.
+  */
++#ifndef KTX_NO_FORWARD_TYPES
+ #if !defined(GL_NO_ERROR)
+   /*
+    * To avoid having to including gl.h ...
+@@ -107,6 +108,7 @@ typedef unsigned char ktx_uint32_t_SIZE_ASSERT[sizeof(ktx_uint32_t) == 4];
+   typedef unsigned int GLuint;
+   typedef unsigned char GLubyte;
+ #endif
++#endif
+ 
+ #ifdef __cplusplus
+ extern "C" {
+diff --git a/lib/glloader.c b/lib/glloader.c
+index 9b7db59..a875bfd 100644
+--- a/lib/glloader.c
++++ b/lib/glloader.c
+@@ -1014,10 +1014,10 @@ ktxTexture2_GLUpload(ktxTexture2* This, GLuint* pTexture, GLenum* pTarget,
+         return KTX_INVALID_VALUE;
+     }
+ 
+-    result = ktxLoadOpenGL(NULL);
+-    if (result != KTX_SUCCESS) {
+-        return result;
+-    }
++    // result = ktxLoadOpenGL(NULL);
++    // if (result != KTX_SUCCESS) {
++    //     return result;
++    // }
+ 
+     if (This->vkFormat != VK_FORMAT_UNDEFINED) {
+         formatInfo.glInternalformat =
+diff --git a/tests/tests.cmake b/tests/tests.cmake
+index 22482f5..33baec1 100644
+--- a/tests/tests.cmake
++++ b/tests/tests.cmake
+@@ -4,8 +4,9 @@
+ # gtest based unit-tests
+ 
+ include(GoogleTest)
+-
+-add_subdirectory(gtest)
++if (NOT TARGET gtest::gtest_main)
++    add_subdirectory(gtest)
++endif()
+ find_package(Threads)
+ 
+ # This setting is critical when cross compiling and on Apple
+diff --git a/tools/ktx/CMakeLists.txt b/tools/ktx/CMakeLists.txt
+index 331f328..3af9be0 100644
+--- a/tools/ktx/CMakeLists.txt
++++ b/tools/ktx/CMakeLists.txt
+@@ -39,6 +39,7 @@ set_target_properties(
+     PROPERTIES
+         OUTPUT_NAME ktx
+         PDB_NAME ktxtools # Avoid conflict with libktx's .pdb.
++        CXX_STANDARD 17
+ )
+ 
+ target_include_directories(
+diff --git a/tools/ktx/command.h b/tools/ktx/command.h
+index a7f9867..dd7728e 100644
+--- a/tools/ktx/command.h
++++ b/tools/ktx/command.h
+@@ -222,7 +222,7 @@ struct OptionsFormat {
+     }
+ 
+     void process(cxxopts::Options&, cxxopts::ParseResult& args, Reporter& report) {
+-        const auto& formatStr = to_lower_copy(args["format"].as<std::string>());
++        const std::string& formatStr = to_lower_copy(args["format"].as<std::string>());
+         if (formatStr == "text") {
+             format = OutputFormat::text;
+         } else if (formatStr == "json") {

@@ -1,0 +1,73 @@
+{
+    "version": 6,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 28,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "default",
+            "displayName": "Default Config",
+            "description": "Default build using Ninja generator",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "installDir": "${sourceDir}/install_prefix",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "BUILD_SHARED_LIBS": "YES"
+            }
+        },
+        {
+            "name": "fixes-for-old-ubuntu",
+            "inherits": "default",
+            "cacheVariables": {
+                "CMAKE_CXX_COMPILER": "/usr/local/bin/g++",
+                "CMAKE_C_COMPILER": "/usr/local/bin/gcc",
+                "CMAKE_BUILD_RPATH": "/usr/local/lib64",
+                "CMAKE_INSTALL_RPATH": "/usr/local/lib64",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install_prefix"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "release",
+            "configurePreset": "default",
+            "configuration": "Release"
+        },
+        {
+            "name": "fixes-for-old-ubuntu",
+            "configurePreset": "fixes-for-old-ubuntu",
+            "configuration": "Release"
+        }
+    ],
+    "workflowPresets": [
+        {
+            "name": "default",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "default"
+                },
+                {
+                    "type": "build",
+                    "name": "default"
+                }
+            ]
+        },
+        {
+            "name": "fixes-for-old-ubuntu",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "fixes-for-old-ubuntu"
+                },
+                {
+                    "type": "build",
+                    "name": "fixes-for-old-ubuntu"
+                }
+            ]
+        }
+    ]
+}
