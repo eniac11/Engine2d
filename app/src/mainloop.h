@@ -3,11 +3,12 @@
 #include <GLFW/glfw3.h>
 #include <engine/Camera.h>
 #include <engine/ShaderProgram.h>
-#include <../../engine/base/include/engine/graphics/Texture.h>
+#include <engine/graphics/Texture.h>
 #include <engine/app.h>
 #include <engine/graphics/Buffer.h>
 #include <engine/graphics/VertexArray.h>
 #include <memory>
+#include <engine/2d/Chunk.h>
 
 constexpr int WINDOW_HEIGHT = 600;
 constexpr int WINDOW_WIDTH = 800;
@@ -20,6 +21,7 @@ class MyApp : public WindowedApp {
         // std::string const name() override final { return std::string("MyApp"); }
         void update(float dt) override;
         void setup() override;
+        void shutdown() override;
 
     private:
         OrthographicCamera camera;
@@ -31,6 +33,8 @@ class MyApp : public WindowedApp {
         std::weak_ptr<VertexArray::BufferHandle> tileid_buffer2_handle;
         std::shared_ptr<VertexArray> vao;
         std::shared_ptr<VertexArray> vao2;
+        TilemapLayer* layer1= nullptr;
+        std::shared_ptr<TilemapRenderer> m_renderer;
 };
 
 void set_window_hints();

@@ -45,6 +45,9 @@ class Texture {
         [[nodiscard]] virtual std::uint32_t height() const = 0;
         [[nodiscard]] bool is_valid() const {return m_valid;}
 
+        [[nodiscard]] virtual bool has_layers() = 0;
+        [[nodiscard]] virtual std::uint32_t layers() = 0;
+
         virtual std::unique_ptr<memo_type> bind(int binding_index) const = 0;
 
         virtual void parameter(TextureParameters param, int value) = 0;

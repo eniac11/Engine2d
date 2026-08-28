@@ -53,6 +53,6 @@ size_t OpenGLBuffer::size() {
     return _size;
 }
 
-GLuint OpenGLBuffer::get_id() const { return m_id; }
+uint32_t OpenGLBuffer::get_id() const { return m_id; }
 
 OpenGLBuffer::OpenGLBuffer(const GLuint id) : m_id(id) {}

@@ -51,9 +51,11 @@ generate_shader_reflection_header(compute_shader)
 add_executable(game_app)
 target_sources(game_app
     PRIVATE
-    src/main.cpp
-    src/mainloop.cpp
-    src/mainloop.h
+      src/main.cpp
+      src/mainloop.cpp
+      src/mainloop.h
+      src/tilemap_parse_temp.cpp
+      src/tilemap_parse_temp.h
 )
 target_link_libraries(game_app PRIVATE Backward::Backward glfw engine::engine engine::e2d sprite_render_shader sprite_render_shader2 engine_graphics_opengl)
 

@@ -54,6 +54,7 @@ class WindowedApp : public App {
         void setup_graphics_backend(std::unique_ptr<graphics::GraphicsBackend>&& backend);
         virtual void setup() = 0;
         virtual void update(float dt) = 0;
+        virtual void shutdown() {}
         void run() override final;
 
     protected:

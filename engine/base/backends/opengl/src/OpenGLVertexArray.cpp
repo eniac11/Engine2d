@@ -29,6 +29,7 @@ std::weak_ptr<VertexArray::BufferHandle> OpenGLVertexArray::add_vertex_data_buff
 }
 
 void OpenGLVertexArray::attrib_format(GLint ncomponents, GLuint index, GLenum type, bool normalised, GLuint relative_offset) {
+    elogCDebugEnabled(lcBackendOpengl) std::println(elogCDebug(lcBackendOpengl), "VertexArray({0}) attrib format: attrib({1}), components({2})", m_id, index, ncomponents);
     if (type == GL_UNSIGNED_INT or type == GL_INT ) {
         glVertexArrayAttribIFormat(m_id, index, ncomponents, type, relative_offset);
     } else {
@@ -50,7 +51,7 @@ void OpenGLVertexArray::bind_buffer_to_attrib(std::shared_ptr<BufferHandle> hand
     {
         if (vao->get_id() == m_id)
         {
-            elogCDebugEnabled(lcBackendOpengl) std::println(elogCDebug(lcBackendOpengl), "Binding buffer({1}): {0}", handle->binding_id, handle->buffer->get_id());
+            elogCDebugEnabled(lcBackendOpenglBindings) std::println(elogCDebug(lcBackendOpenglBindings), "VertexArray({3}) Binding buffer({1}): {0} -> {2}", handle->binding_id, handle->buffer->get_id(), attrib_index, m_id);
 
             glVertexArrayAttribBinding(m_id, attrib_index, handle->binding_id);
 

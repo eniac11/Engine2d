@@ -62,7 +62,12 @@ target_sources(e2d
             include/engine/2d/TileSet.h
             include/engine/2d/tileset_mesher.h
             include/engine/2d/Chunk.h
-
+        PRIVATE
+        FILE_SET private_headers
+        TYPE HEADERS
+        BASE_DIRS private
+        FILES
+        private/e2d_logging.h
         PRIVATE
             src/TileSet.cpp
             src/tileset_mesher.cpp

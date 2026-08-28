@@ -14,6 +14,9 @@ class OpenGLTexture final : public Texture {
         [[nodiscard]] std::uint32_t width() const override;
         [[nodiscard]] std::uint32_t height() const override;
 
+        [[nodiscard]] bool has_layers() override;
+        [[nodiscard]] std::uint32_t layers() override;
+
         void load_data(const void *data, const int width, const int height, const int channels);
         void load_data(ktxTexture* texture);
 

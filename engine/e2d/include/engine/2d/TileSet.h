@@ -1,8 +1,7 @@
 #pragma once
 #include <memory>
 
-#include <../../../../base/include/engine/graphics/Texture.h>
-#include <glm/fwd.hpp>
+#include <engine/graphics/Texture.h>
 #include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp>
@@ -15,8 +14,6 @@ class TileSet {
         };
 
         TileSet(std::shared_ptr<Texture> texture, glm::ivec2 tile_size, glm::ivec2 margin = {0, 0});
-
-        TileUv get_uv(glm::uvec2 pos) const;
 
         /**
          * The number of tiles in the tilemap

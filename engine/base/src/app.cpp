@@ -51,4 +51,5 @@ void WindowedApp::run() {
         update(m_window->deltatime());
         m_window->update();
     }
+    shutdown();
 }

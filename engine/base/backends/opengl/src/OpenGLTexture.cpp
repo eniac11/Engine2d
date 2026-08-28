@@ -60,6 +60,20 @@ std::uint32_t OpenGLTexture::height() const {
     return m_height;
 }
 
+bool OpenGLTexture::has_layers() {
+    if ( m_texture && m_texture->numLayers > 0) {
+        return true;
+    }
+    return false;
+}
+
+std::uint32_t OpenGLTexture::layers() {
+    if (m_texture)
+        return m_texture->numLayers;
+    return 0;
+
+}
+
 void OpenGLTexture::load_data(const void *data, const int width, const int height, const int channels) {
     m_width = width;
     m_height = height;

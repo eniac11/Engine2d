@@ -251,7 +251,7 @@ namespace elog {
 
     class Elogger {
         class EloggerPrivate;
-        mutable std::mutex lck_log;
+        mutable std::recursive_mutex lck_log;
 
         public:
             using loghandler = std::function<void(MessageType, MessageContext&, std::string)>;

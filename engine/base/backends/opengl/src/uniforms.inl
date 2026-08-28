@@ -8,11 +8,11 @@
 #define UNIFORM_PVALUE(n, suffix, ARGS, PREFIX, VARS...) void OpenGLShaderProgram::set_uniform(GLint location, ARGS) bodyv(n, suffix, VARS)
 
 #define body(n, suffix,VARS...) {\
-elogCDebugEnabled(lcBackendOpengl) std::println(elogCDebug(lcBackendOpengl), "Setting Program {3} Uniform '{1}{2}': {0}", location, n, #suffix, m_id);\
+elogCDebugEnabled(lcBackendOpenglBindings) std::println(elogCDebug(lcBackendOpenglBindings), "Setting Program {3} Uniform '{1}{2}': {0}", location, n, #suffix, m_id);\
 glProgramUniform##n##suffix(m_id, location, ##VARS);\
 }
 #define bodyv(n, suffix, VARS...) {\
-elogCDebugEnabled(lcBackendOpengl) std::println(elogCDebug(lcBackendOpengl), "Setting Program {3} Uniform '{2}vec{1}': {0}", location, n, #suffix, m_id);\
+elogCDebugEnabled(lcBackendOpenglBindings) std::println(elogCDebug(lcBackendOpenglBindings), "Setting Program {3} Uniform '{2}vec{1}': {0}", location, n, #suffix, m_id);\
     glProgramUniform##n##suffix##v(m_id, location, 1, ##VARS); \
     }
 #define mat_body(n, suffix) {\
@@ -27,7 +27,7 @@ UNIFORM_FUNC1(GLfloat, f)
 UNIFORM_PVALUE1(glm::vec3, f)
 
 void OpenGLShaderProgram::set_uniform(GLint location, const glm::mat4 &v1) {
-    elogCDebugEnabled(lcBackendOpengl) std::println(elogCDebug(lcBackendOpengl), "Setting Program {1} Uniform 'mat4': {0}", location, m_id);
+    elogCDebugEnabled(lcBackendOpenglBindings) std::println(elogCDebug(lcBackendOpenglBindings), "Setting Program {1} Uniform 'mat4': {0}", location, m_id);
 
     glProgramUniformMatrix4fv(m_id, location, 1, GL_FALSE, glm::value_ptr(v1));
 }

@@ -9,7 +9,7 @@ class OpenGLVertexArray final : public VertexArray {
         void set_name(std::string const& name) override;
 
         static std::shared_ptr<OpenGLVertexArray> create();
-        int get_id() override { return m_id; };
+        uint32_t get_id() const override { return m_id; };
         void set_ebo(std::shared_ptr<Buffer> ebo) override;
         std::weak_ptr<BufferHandle> add_vertex_data_buffer(std::shared_ptr<Buffer> buffer, GLsizei stride,
             GLuint offset) override;

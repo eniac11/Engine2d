@@ -18,7 +18,12 @@ namespace backend::graphics {
             std::shared_ptr<Texture> create_raw_texture_from_memory(const void *data, const int width, const int height, const int channels) override;
             std::shared_ptr<ShaderProgram> load_program_from_spirv(ShaderHandle handle) override;
             std::shared_ptr<ShaderProgram> load_program_from_spirv_memory(ShaderHandle handle, std::vector<uint8_t> const& memory) override;
-    private:
+
+            void draw(::graphics::PrimitiveType type, int32_t first, ssize_t count) override;
+            void draw_elements(::graphics::PrimitiveType type, ssize_t count,
+                               ::graphics::IndexType index_type, ssize_t first_index) override;
+
+        private:
         void setup_from_env();
         bool m_enable_validation = false;
     };

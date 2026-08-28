@@ -23,15 +23,14 @@ class Transform {
     constexpr void update_matrix() {
         auto mat = glm::mat4(1.0f);
 
-        if constexpr (std::is_same_v<pos_type, glm::vec2> && std::is_same_v<scale_type, glm::vec2> && std::is_same_v<rotation_type, glm::vec2>) {
+        if constexpr (std::is_same_v<pos_type, glm::vec2> && std::is_same_v<scale_type, glm::vec2> && std::is_same_v<rotation_type, float>) {
             auto translate = glm::translate(glm::mat4(1.0f), glm::vec3(m_position, 0.0f));
             auto rotate = glm::rotate(glm::mat4(1.0f), m_rotation, glm::vec3(0.0f, 0.0f, 1.0f));
             auto scale = glm::scale(glm::mat4(1.0f), glm::vec3(m_scale, 1.0f));
             mat = translate * rotate * scale;
-        }
-        if constexpr (std::is_same_v<pos_type, glm::vec3> && std::is_same_v<scale_type, glm::vec3> && std::is_same_v<rotation_type, glm::quat>) {
+        } else if constexpr (std::is_same_v<pos_type, glm::vec3> && std::is_same_v<scale_type, glm::vec3> && std::is_same_v<rotation_type, glm::quat>) {
             auto translate = glm::translate(mat, m_position);
-            auto rotate = glm::mat4_cast(glm::quat(m_rotation));
+            auto rotate = glm::mat4_cast(m_rotation);
             auto scale = glm::scale(mat, glm::vec3(m_scale, 1.0f));
             mat = translate * rotate * scale;
         }

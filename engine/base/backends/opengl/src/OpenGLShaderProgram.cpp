@@ -130,7 +130,7 @@ std::shared_ptr<OpenGLShaderProgram> OpenGLShaderProgram::create() {
     return std::shared_ptr<OpenGLShaderProgram>(new OpenGLShaderProgram(id));
 }
 
-GLuint OpenGLShaderProgram::get_id() const {
+uint32_t OpenGLShaderProgram::get_id() const {
     return m_id;
 }
 

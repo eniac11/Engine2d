@@ -13,6 +13,7 @@
 #include <engine/RAII/binding.h>
 #include <engine/resources/dwarfs_fs.h>
 #include <engine/elog.h>
+#include <engine/2d/Chunk.h>
 
 #include <iostream>
 #include <array>
@@ -22,7 +23,9 @@
 #include <numeric>
 #include <generator>
 
+
 #include "sprite_render_shader2.h"
+#include "tilemap_parse_temp.h"
 
 
 ELOG_DECLARE_LOGGING_CATEGORY(lcGameApp, "game_app")
@@ -76,12 +79,12 @@ std::generator<std::uint32_t> generate_tileids(int bound) {
 
 void MyApp::setup() {
     // elog::Elogger::global_logger().install_log_handler(elog::handlers::sd_journal_handler);
-    elog::Elogger::global_logger().install_filter_rules("engine.graphics.bindings{debug}=false");
-    if (!m_virtualFileSystem->CreateFileSystem<dwarfs_fs>("/data", "data/assets.dwarfs")) {
-        std::println(elogDebug(), "Could not create dwarfs filesystem");
-    }
+    elog::Elogger::global_logger().install_filter_rules("engine.backends.*.bindings{debug}=false");
+    // if (!m_virtualFileSystem->CreateFileSystem<dwarfs_fs>("/data", "data/assets.dwarfs")) {
+    //     std::println(elogDebug(), "Could not create dwarfs filesystem");
+    // }
     if (!m_virtualFileSystem->CreateFileSystem<vfspp::NativeFileSystem>("/data", "data")) {
-        std::println(elogDebug(), "Could not create dwarfs filesystem");
+        std::println(elogDebug(), "Could not create native filesystem");
     }
 
 
@@ -156,6 +159,24 @@ void MyApp::setup() {
     texture2->parameter(TextureParameters::MAG_FILTER, GL_NEAREST);
     texture2->parameter(TextureParameters::MIN_FILTER, GL_NEAREST);
 
+    auto f = m_virtualFileSystem->OpenFile("/data/tilemap", vfspp::IFile::FileMode::Read);
+    std::vector<uint8_t> text(f->Size());
+    f->Read(text);
+    f->Close();
+    std::string tilemapstring(text.begin(), text.end());
+
+    tilemap_parse_temp temp_parser;
+    std::vector<uint32_t> tilemap_tileids = temp_parser.parse(tilemapstring, {{'#', 25}, {'_', 22}});
+    std::println(elogInfo(), "size: {}", tilemap_tileids.size());
+    std::println(elogInfo(), "tilemap_tileids: {}", tilemap_tileids);
+    layer1 = new TilemapLayer(m_graphics_backend.get(), 16, 16, 1);
+    layer1->set_tileids(tilemap_tileids);
+    layer1->finalise(m_graphics_backend.get());
+
+
+
+    m_renderer = TilemapRenderer::create(m_graphics_backend.get());
+
     glEnable(GL_FRAMEBUFFER_SRGB);
     #ifdef DEBUG
     // Make it easier to find all the loading and setup gl calls in RenderDoc.
@@ -164,32 +185,46 @@ void MyApp::setup() {
     glEnable(GL_DEPTH_TEST);
 }
 
+void MyApp::shutdown() {
+    WindowedApp::shutdown();
+    delete layer1;
+    layer1 = nullptr;
+}
+
 
 void MyApp::update(float dt) {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     {
-        BindingHandle vao_binding(vao2);
-        BindingHandle program_binding(program2);
         BindingHandle handle(texture2, 0);
 
-        program2->set_uniform(sprite_render_shader2::get_uniform_location("model"),
-                              glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f)),
-                                         glm::vec3(32.0f, 32.0f, 1.0f)));
-        program2->set_uniform(sprite_render_shader2::get_uniform_location("layer"), 1.0f);
+        m_renderer->begin_drawing(1, camera);
+        m_renderer->draw(m_graphics_backend.get(), *layer1);
+        m_renderer->end_drawing();
 
-        if (auto tb = tileid_buffer1_handle.lock()) {
-            vao2->bind_buffer_to_attrib(tb, sprite_render_shader2::get_input_location("tileId").location);
-            glDrawElements(GL_TRIANGLES, 16 * 16 * 6, GL_UNSIGNED_INT, nullptr);
-        }
-        // glVertexArrayAttribBinding(vao2->get_id(), sprite_render_shader2::get_input_location("tileId").location, tileid_binding_index1);
-        program2->set_uniform(sprite_render_shader2::get_uniform_location("model"),
-                              glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(32.0f * 16, 0.0f, 0.0f)),
-                                         glm::vec3(32.0f, 32.0f, 1.0f)));
-        program2->set_uniform(sprite_render_shader2::get_uniform_location("layer"), 0.5f);
-        if (auto tb = tileid_buffer2_handle.lock()) {
-            vao2->bind_buffer_to_attrib(tb, sprite_render_shader2::get_input_location("tileId").location);
-            glDrawElements(GL_TRIANGLES, 16 * 16 * 6, GL_UNSIGNED_INT, nullptr);
-        }
+        // BindingHandle vao_binding(vao2);
+        // BindingHandle program_binding(program2);
+        //
+        // program2->set_uniform(sprite_render_shader2::get_uniform_location("model"),
+        //                       glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f)),
+        //                                  glm::vec3(32.0f, 32.0f, 1.0f)));
+        // program2->set_uniform(sprite_render_shader2::get_uniform_location("layer"), 1.0f);
+        //
+        // if (auto tb = tileid_buffer1_handle.lock()) {
+        //     vao2->bind_buffer_to_attrib(tb, sprite_render_shader2::get_input_location("tileId").location);
+        //     // glDrawElements(GL_TRIANGLES, 16 * 16 * 6, GL_UNSIGNED_INT, nullptr);
+        //     m_graphics_backend->draw_elements(graphics::PrimitiveType::TRIANGLES, 16*16*6, graphics::IndexType::UNSIGNED_INT, 0);
+        //
+        // }
+        // // glVertexArrayAttribBinding(vao2->get_id(), sprite_render_shader2::get_input_location("tileId").location, tileid_binding_index1);
+        // program2->set_uniform(sprite_render_shader2::get_uniform_location("model"),
+        //                       glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(32.0f * 16, 0.0f, 0.0f)),
+        //                                  glm::vec3(32.0f, 32.0f, 1.0f)));
+        // program2->set_uniform(sprite_render_shader2::get_uniform_location("layer"), 0.5f);
+        // if (auto tb = tileid_buffer2_handle.lock()) {
+        //     vao2->bind_buffer_to_attrib(tb, sprite_render_shader2::get_input_location("tileId").location);
+        //     // m_graphics_backend->draw_elements(graphics::PrimitiveType::TRIANGLES, 16*16*6, graphics::IndexType::UNSIGNED_INT, 0);
+        //     glDrawElements(GL_TRIANGLES, 16 * 16 * 6, GL_UNSIGNED_INT, nullptr);
+        // }
     }
 }

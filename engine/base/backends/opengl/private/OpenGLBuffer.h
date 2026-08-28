@@ -15,7 +15,7 @@ class OpenGLBuffer : public Buffer {
         void upload(std::size_t size, void const* data, GLenum usage) override;
         void upload_subdata(std::size_t size, std::size_t offset, void const* data) override;
         size_t size() override;
-        GLuint get_id() const override;
+        [[nodiscard]] uint32_t get_id() const override;
     private:
         explicit OpenGLBuffer(const GLuint id);
         GLuint m_id;

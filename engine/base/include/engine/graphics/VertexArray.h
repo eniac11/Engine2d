@@ -23,7 +23,7 @@ class VertexArray : public std::enable_shared_from_this<VertexArray> {
         virtual void set_name(std::string const& name) = 0;
 
 
-        virtual int get_id() = 0;
+        virtual uint32_t get_id() const = 0;
 
         // static std::shared_ptr<VertexArray> create();
         virtual void set_ebo(std::shared_ptr<Buffer> ebo) = 0;

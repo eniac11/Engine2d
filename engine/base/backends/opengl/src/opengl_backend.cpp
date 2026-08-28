@@ -214,6 +214,50 @@ namespace backend::graphics {
         return program;
     }
 
+    constexpr GLenum map_primitive_type(::graphics::PrimitiveType const type) {
+        switch (type) {
+            case ::graphics::PrimitiveType::POINTS:
+                return GL_POINTS;
+            case ::graphics::PrimitiveType::LINE_STRIP:
+                return GL_LINE_STRIP;
+            case ::graphics::PrimitiveType::TRIANGLE_STRIP:
+                return GL_TRIANGLE_STRIP;
+            case ::graphics::PrimitiveType::TRIANGLES:
+                return GL_TRIANGLES;
+        }
+    }
+
+    constexpr GLenum map_index_type(::graphics::IndexType const type) {
+        switch (type) {
+            case ::graphics::IndexType::UNSIGNED_INT:
+                return GL_UNSIGNED_INT;
+            case ::graphics::IndexType::UNSIGNED_SHORT:
+                return GL_UNSIGNED_SHORT;
+            case ::graphics::IndexType::UNSIGNED_BYTE:
+                return GL_UNSIGNED_BYTE;
+        }
+    }
+
+    void OpenglBackend::draw(::graphics::PrimitiveType type, int32_t first, ssize_t count) {
+        GLenum const primitive_type = map_primitive_type(type);
+        glDrawArrays(primitive_type, first, count);
+    }
+
+    void OpenglBackend::draw_elements(::graphics::PrimitiveType type, ssize_t count,
+                                      ::graphics::IndexType index_type, ssize_t first_index) {
+        GLenum const primitive_type = map_primitive_type(type);
+        GLenum const itype = map_index_type(index_type);
+        // NOTE(hadley): Check this for correctness: Does glDrawElements take a pointer to an offset or does it
+        //               interpret the integer value of the pointer as the actual offset
+        //               ---
+        //               Answer: https://wikis.khronos.org/opengl/Vertex_Rendering#Basic_Drawing
+        //               The indices parameter is odd. Much like old-style vertex attributes, it is not a pointer at all.
+        //               It is in fact a byte offset, which is disguised as a pointer. So you need to take your byte
+        //               offset into the index buffer and cast it into a void* (with reinterpret_cast<void*> or
+        //               just (void*)).
+        glDrawElements(primitive_type, count, itype, reinterpret_cast<void*>(first_index));
+    }
+
     constexpr bool parse_env_true_false(std::string const& env, const bool def)
     {
         auto evariable = std::getenv(env.c_str());

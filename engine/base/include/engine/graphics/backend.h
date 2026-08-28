@@ -9,6 +9,8 @@
 #include <engine/ShaderProgram.h>
 #include <vfspp/IFile.h>
 
+#include <cstddef>
+
 typedef void (*ENGINE_PFNGLGETPROCADDRESS)(const char* proc);
 
 namespace graphics {
@@ -18,6 +20,38 @@ namespace graphics {
                 : runtime_error(basic_string) {
             }
     };
+
+    enum struct PrimitiveType {
+        POINTS,
+        LINE_STRIP,
+        TRIANGLE_STRIP,
+        TRIANGLES
+    };
+
+    enum struct IndexType {
+        UNSIGNED_INT,
+        UNSIGNED_SHORT,
+        UNSIGNED_BYTE
+    };
+
+   constexpr std::string to_string(IndexType const e) {
+        switch (e) {
+            case IndexType::UNSIGNED_INT: return "UNSIGNED_INT";
+            case IndexType::UNSIGNED_SHORT: return "UNSIGNED_SHORT";
+            case IndexType::UNSIGNED_BYTE: return "UNSIGNED_BYTE";
+            default: return "unknown";
+        }
+    }
+
+    constexpr std::string to_string(PrimitiveType const e) {
+        switch (e) {
+            case PrimitiveType::POINTS: return "POINTS";
+            case PrimitiveType::LINE_STRIP: return "LINE_STRIP";
+            case PrimitiveType::TRIANGLE_STRIP: return "TRIANGLE_STRIP";
+            case PrimitiveType::TRIANGLES: return "TRIANGLES";
+            default: return "unknown";
+        }
+    }
 
     class GraphicsBackend {
         // TODO(hadley): add "object label/name" overrides
@@ -44,6 +78,10 @@ namespace graphics {
             virtual std::shared_ptr<Texture> create_texture_from_file(std::filesystem::path const& path) = 0;
             virtual std::shared_ptr<Texture> create_texture_from_file(vfspp::IFilePtr file) = 0;
             virtual std::shared_ptr<Texture> create_raw_texture_from_memory(const void *data, const int width, const int height, const int channels) = 0;
+
+            // FIXME: Rework this entire api to use a declarative model and not an imperative one.
+            virtual void draw(PrimitiveType type, int32_t first, ssize_t count) = 0;
+            virtual void draw_elements(PrimitiveType type, ssize_t count, IndexType index_type, ssize_t first_index) = 0;
 
             // Create Shader program
 

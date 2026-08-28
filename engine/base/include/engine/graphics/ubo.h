@@ -1,6 +1,6 @@
 #pragma once
+#include <cassert>
 #include <memory>
-#include <type_traits>
 
 #include "Buffer.h"
 
@@ -29,7 +29,7 @@ class UnboundBuffer {
         //     m_buffer->allocate(ssize, GL_DYNAMIC_DRAW);
         // }
 
-        int get_id() const {
+        [[nodiscard]] std::uint32_t get_id() const {
             return m_buffer->get_id();
         }
 

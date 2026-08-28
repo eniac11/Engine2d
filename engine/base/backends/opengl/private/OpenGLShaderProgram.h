@@ -6,7 +6,7 @@
 class OpenGLShaderProgram final : public ShaderProgram {
     public:
         static std::shared_ptr<OpenGLShaderProgram> create();
-        GLuint get_id() const override;
+        uint32_t get_id() const override;
         void add_ubo(int shader_ubo_block_binding, std::shared_ptr<Buffer> buffer) override;
 
     public:

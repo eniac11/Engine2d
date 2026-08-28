@@ -355,7 +355,7 @@ namespace elog {
     }
 
     void Elogger::install_filter_rules(std::string const& rules) const {
-        std::lock_guard<std::mutex> lck(lck_log);
+        std::lock_guard lck(lck_log);
         d->m_registry.installFilter(rules);
     }
 
@@ -364,14 +364,15 @@ namespace elog {
     void Elogger::set_output_stream(std::ostream* stream) const { d->m_stderr_stream = stream; }
 
     LogRuleRegistry const& Elogger::registry() {
-        std::lock_guard<std::mutex> lck(lck_log);
+        std::lock_guard lck(lck_log);
         return d->m_registry;
     }
 
 
     void Elogger::write_to_log(MessageType msgtype, MessageContext& ctx, std::string msg) const {
-        std::lock_guard<std::mutex> guard(lck_log);
-        std::lock_guard<std::mutex> gbl_guard(global_logger_mutex);
+        std::scoped_lock guard(lck_log);
+        // guard.
+        // std::lock_guard<std::mutex> gbl_guard(global_logger_mutex);
         auto flag = Flags(d->m_registry.pass(ctx.category, msgtype));
         if (has_flag(flag, LogRule::CheckStatus::Pass) || has_flag(flag, LogRule::CheckStatus::Ignore)) {
             for (auto const& handler : m_handlers) {

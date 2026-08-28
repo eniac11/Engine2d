@@ -29,7 +29,7 @@ class ShaderProgram {
 
         virtual ~ShaderProgram() = default;
 
-        virtual GLuint get_id() const = 0;
+        virtual uint32_t get_id() const = 0;
 
 
 
