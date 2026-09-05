@@ -80,6 +80,10 @@ void OpenGLShaderProgram::set_uniform(const Resource& resource, const GLfloat& v
     set_uniform(resource.location, v1);
 }
 
+void OpenGLShaderProgram::set_uniform(const Resource& resource, const glm::ivec2& v1) {
+    set_uniform(resource.location, v1);
+}
+
 void OpenGLShaderProgram::set_uniform(const Resource& resource, const glm::vec3& v1)
 {
     set_uniform(resource.location, v1);

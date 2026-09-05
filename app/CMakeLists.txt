@@ -56,8 +56,10 @@ target_sources(game_app
       src/mainloop.h
       src/tilemap_parse_temp.cpp
       src/tilemap_parse_temp.h
+      src/imgui_impl_glfw.cpp
+      src/imgui_impl_glfw.h
 )
-target_link_libraries(game_app PRIVATE Backward::Backward glfw engine::engine engine::e2d sprite_render_shader sprite_render_shader2 engine_graphics_opengl)
+target_link_libraries(game_app PRIVATE Backward::Backward glfw engine::engine engine::e2d sprite_render_shader sprite_render_shader2 engine_graphics_opengl imgui::imgui)
 
 
 install(TARGETS game_app sprite_render_shader sprite_render_shader2

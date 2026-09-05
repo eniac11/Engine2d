@@ -5,6 +5,8 @@
 #include <engine/StandardDirectories.h>
 #include <vfspp/NativeFileSystem.hpp>
 
+#include <imgui/imgui.h>
+
 App* App::s_instance = nullptr;
 
 App::App() {
@@ -45,10 +47,22 @@ void WindowedApp::setup_graphics_backend(std::unique_ptr<graphics::GraphicsBacke
     m_graphics_backend->initialise(m_window->getProcAdress());
 }
 
+void WindowedApp::setup() {
+    // ImGui::CreateContext();
+}
+
 void WindowedApp::run() {
     this->App::run();
     while (!m_window->window_should_close()) {
-        update(m_window->deltatime());
+        m_window->begin_frame();
+        float dt = m_window->deltatime();
+        m_graphics_backend->begin_frame(dt);
+        ImGui::NewFrame();
+
+        update(dt);
+        // ImGui::EndFrame();
+        ImGui::Render();
+        m_graphics_backend->end_frame();
         m_window->update();
     }
     shutdown();

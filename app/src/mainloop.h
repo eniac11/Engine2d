@@ -9,9 +9,13 @@
 #include <engine/graphics/VertexArray.h>
 #include <memory>
 #include <engine/2d/Chunk.h>
+#include <imgui/imgui.h>
+// #include <engine/imgui.h>
 
 constexpr int WINDOW_HEIGHT = 600;
 constexpr int WINDOW_WIDTH = 800;
+
+
 
 class MyApp : public WindowedApp {
     public:
@@ -34,7 +38,14 @@ class MyApp : public WindowedApp {
         std::shared_ptr<VertexArray> vao;
         std::shared_ptr<VertexArray> vao2;
         TilemapLayer* layer1= nullptr;
+        TilemapLayer* layer2= nullptr;
+        TilemapLayer* layer3= nullptr;
+        TilemapLayer* layer4= nullptr;
         std::shared_ptr<TilemapRenderer> m_renderer;
+        bool depth_test = true;
+        bool depth_test_dirty =false;
+        bool srgb_fb_dirty = false;
+        bool srgb_fb = true;
 };
 
 void set_window_hints();

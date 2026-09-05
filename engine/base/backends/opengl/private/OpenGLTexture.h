@@ -20,7 +20,9 @@ class OpenGLTexture final : public Texture {
         void load_data(const void *data, const int width, const int height, const int channels);
         void load_data(ktxTexture* texture);
 
-        void parameter(TextureParameters param, int value) override;
+        void get_parameter(TextureParameters param, int& value) const override;
+        void get_parameter(TextureParameters param, std::uint32_t& value) const override;
+        void set_parameter(TextureParameters param, int value) override;
 
     private:
         OpenGLTexture(GLuint id);

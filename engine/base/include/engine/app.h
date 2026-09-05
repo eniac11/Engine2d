@@ -32,8 +32,11 @@ class Window {
         virtual void close_window() = 0;
         virtual bool is_open() = 0;
         virtual void create(int width, int height, std::string const& title) = 0;
+
+        virtual void begin_frame() = 0;
         virtual void update() = 0;
         virtual float deltatime() = 0;
+
         virtual ENGINE_PFNGLGETPROCADDRESS* getProcAdress() = 0;
 
     protected:
@@ -52,7 +55,7 @@ class WindowedApp : public App {
             };
         void setup_window(std::unique_ptr<Window> window);
         void setup_graphics_backend(std::unique_ptr<graphics::GraphicsBackend>&& backend);
-        virtual void setup() = 0;
+        virtual void setup();
         virtual void update(float dt) = 0;
         virtual void shutdown() {}
         void run() override final;

@@ -1,3 +1,9 @@
+include(FeatureFindPackage)
+
+add_subdirectory(imgui)
+
+defer_on_missing_required_packages()
+
 set(VFSPP_VERSION 1.0)
 add_library(vfspp INTERFACE)
 set_target_properties(vfspp PROPERTIES HEADER_ONLY ON)

@@ -24,7 +24,8 @@ UNIFORM_FUNC1(GLuint, ui)
 UNIFORM_FUNC1(GLint, i)
 UNIFORM_FUNC1(GLboolean, i)
 UNIFORM_FUNC1(GLfloat, f)
-UNIFORM_PVALUE1(glm::vec3, f)
+UNIFORM_PVALUE2(glm::ivec2, i)
+UNIFORM_PVALUE3(glm::vec3, f)
 
 void OpenGLShaderProgram::set_uniform(GLint location, const glm::mat4 &v1) {
     elogCDebugEnabled(lcBackendOpenglBindings) std::println(elogCDebug(lcBackendOpenglBindings), "Setting Program {1} Uniform 'mat4': {0}", location, m_id);

@@ -24,6 +24,7 @@ class OpenGLShaderProgram final : public ShaderProgram {
         void set_uniform(GLint location, const GLint& v1) override;
         void set_uniform(GLint location, const GLboolean& v1) override;
         void set_uniform(GLint location, const GLfloat& v1) override;
+        void set_uniform(GLint location, const glm::ivec2& v1) override;
         void set_uniform(GLint location, const glm::vec3& v1) override;
         void set_uniform(GLint location, const glm::mat4& v1) override;
 
@@ -34,6 +35,7 @@ class OpenGLShaderProgram final : public ShaderProgram {
         void set_uniform(const Resource& resource, const GLint& v1) override;
         void set_uniform(const Resource& resource, const GLboolean& v1) override;
         void set_uniform(const Resource& resource, const GLfloat& v1) override;
+        void set_uniform(const Resource& resource, const glm::ivec2& v1) override;
         void set_uniform(const Resource& resource, const glm::vec3& v1) override;
         void set_uniform(const Resource& resource, const glm::mat4& v1) override;
 

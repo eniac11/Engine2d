@@ -67,8 +67,7 @@ endif ()
 target_compile_definitions(engine PUBLIC GLM_FORCE_DEFAULT_ALIGNED_GENTYPES _MSC_EXTENSIONS GLM_ENABLE_EXPERIMENTAL)
 target_compile_options(engine PUBLIC -msse2 -mavx2 -msse4.2 -fms-extensions -msha)
 target_link_libraries(engine
-        PUBLIC GLEW::GLEW KTX::ktx glm::glm OpenGL::OpenGL engine_elog vfspp::vfspp
-        PRIVATE dwarfs::dwarfs_reader
+        PUBLIC GLEW::GLEW KTX::ktx glm::glm OpenGL::OpenGL engine_elog vfspp::vfspp imgui::imgui
 )
 
 add_subdirectory(backends/opengl)

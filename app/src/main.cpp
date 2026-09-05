@@ -17,6 +17,8 @@
 #include "backward.hpp"
 #include <engine/backends/graphics/opengl_backend.h>
 
+#include "imgui_impl_glfw.h"
+
 namespace backward {
 
     backward::SignalHandling sh;
@@ -41,10 +43,17 @@ class GlfwWindow : public Window {
             m_lastFrame = currentFrame;
         }
 
+        void begin_frame() override {
+            ImGui_ImplGlfw_NewFrame();
+        }
+
         ~GlfwWindow() override {}
         bool window_should_close() const override { return glfwWindowShouldClose(m_window); }
 
-        void close_window() override { glfwDestroyWindow(m_window); }
+        void close_window() override {
+            ImGui_ImplGlfw_Shutdown();
+            glfwDestroyWindow(m_window);
+        }
 
         bool is_open() override {
             int visible = glfwGetWindowAttrib(m_window, GLFW_VISIBLE);
@@ -86,6 +95,8 @@ class GlfwWindow : public Window {
                 std::println(std::cerr, "GPU does not support required extensions");
                 exit(EXIT_FAILURE);
             }
+
+            ImGui_ImplGlfw_InitForOther(m_window, true);
 
             glViewport(0, 0, m_width, m_height);
         }
@@ -142,6 +153,7 @@ class GlfwWindow : public Window {
 // }
 
 int main() {
+    ImGui::CreateContext();
     MyApp app;
     app.set_name("mygame");
     app.setup_window(std::make_unique<GlfwWindow>());

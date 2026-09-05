@@ -29,7 +29,7 @@ class Dwarfs_elogLogger : public dwarfs::logger {
             #ifdef FOO_DWFS_DEBUG
             set_policy<dwarfs::debug_logger_policy>();
             #else
-            set_policy<dwarfs::prod_logger_policy>()
+            set_policy<dwarfs::prod_logger_policy>();
             #endif
         };
 

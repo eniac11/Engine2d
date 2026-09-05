@@ -17,13 +17,17 @@ class texture_exception : public std::runtime_error {
 
 enum class TextureParameters {
     MAG_FILTER,
-    MIN_FILTER
+    MIN_FILTER,
+    WRAP_S,
+    WRAP_T,
+    TEXTURE_TARGET
 };
 
-constexpr const char* to_string(TextureParameters e) {
+constexpr std::string to_string(TextureParameters e) {
     switch (e) {
         case TextureParameters::MAG_FILTER: return "MAG_FILTER";
         case TextureParameters::MIN_FILTER: return "MIN_FILTER";
+        case TextureParameters::TEXTURE_TARGET: return "TEXTURE_TARGET";
         default: return "unknown";
     }
 }
@@ -50,7 +54,9 @@ class Texture {
 
         virtual std::unique_ptr<memo_type> bind(int binding_index) const = 0;
 
-        virtual void parameter(TextureParameters param, int value) = 0;
+        virtual void get_parameter(TextureParameters param, int& value) const = 0;
+        virtual void get_parameter(TextureParameters param, std::uint32_t& value) const = 0;
+        virtual void set_parameter(TextureParameters param, int value) = 0;
 
     protected:
         void set_valid(bool const valid) {m_valid=valid;};

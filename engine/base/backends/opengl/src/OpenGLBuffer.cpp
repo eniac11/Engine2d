@@ -33,17 +33,22 @@ OpenGLBuffer::~OpenGLBuffer() {
 
 
 void OpenGLBuffer::allocate(std::size_t size, GLenum flags) {
+    std::println(elogCDebug(lcBackendOpengl), "Allocating Buffer({}): size {}", m_id, size);
     glNamedBufferData(m_id, static_cast<GLsizeiptr>(size), nullptr, flags);
 }
 
 // TODO(hadley): Determine if this member function can be made const as technically no modifications are made to
-// function
-//       arguments or to member variables however glNamedBufferStorage technically modifies memory of GPU and/or CPU.
+//               function arguments or to member variables however glNamedBufferStorage technically
+//               modifies memory of GPU and/or CPU.
 void OpenGLBuffer::upload(const std::size_t size, const void* data, const GLenum usage) {
+    std::println(elogCDebug(lcBackendOpengl), "Upload to Buffer({}): size {}", m_id, size);
+
     glNamedBufferData(m_id, static_cast<GLsizeiptr>(size), data, usage);
 }
 
 void OpenGLBuffer::upload_subdata(std::size_t size, std::size_t offset, const void* data) {
+    std::println(elogCDebug(lcBackendOpengl), "Upload to Buffer({}): size {} at offset {}", m_id, size, offset);
+
     glNamedBufferSubData(m_id, static_cast<GLintptr>(offset), static_cast<GLsizeiptr>(size), data);
 }
 

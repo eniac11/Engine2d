@@ -4,6 +4,7 @@
 #include "opengl_logging.h"
 #include <ranges>
 #include <algorithm>
+#include <cassert>
 #include <print>
 
 std::shared_ptr<OpenGLVertexArray> OpenGLVertexArray::create() {
@@ -30,7 +31,7 @@ std::weak_ptr<VertexArray::BufferHandle> OpenGLVertexArray::add_vertex_data_buff
 
 void OpenGLVertexArray::attrib_format(GLint ncomponents, GLuint index, GLenum type, bool normalised, GLuint relative_offset) {
     elogCDebugEnabled(lcBackendOpengl) std::println(elogCDebug(lcBackendOpengl), "VertexArray({0}) attrib format: attrib({1}), components({2})", m_id, index, ncomponents);
-    if (type == GL_UNSIGNED_INT or type == GL_INT ) {
+    if (type == GL_UNSIGNED_INT or type == GL_INT or type == GL_UNSIGNED_BYTE ) {
         glVertexArrayAttribIFormat(m_id, index, ncomponents, type, relative_offset);
     } else {
         glVertexArrayAttribFormat(m_id, index, ncomponents, type, normalised, relative_offset);
@@ -73,6 +74,7 @@ void OpenGLVertexArray::attrib_divisor(std::shared_ptr<BufferHandle> handle, GLu
 
 
 OpenGLVertexArray::~OpenGLVertexArray() {
+    elogCDebugEnabled(lcBackendOpengl) std::println(elogCDebug(lcBackendOpengl), "Destroying VertexArray: {}", m_id);
     glDeleteVertexArrays(1, &m_id);
     m_deleted = true;
 
@@ -109,14 +111,27 @@ for (auto const& handle: m_buffers) {
 
 struct OpenGLVertexArrayMemo : VertexArray::memo_type {
     GLuint m_id;
+    GLuint m_previous_id;
 
     explicit OpenGLVertexArrayMemo(GLuint m_id)
         : m_id(m_id) {
+        GLint prev_vao_id;
+        glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &prev_vao_id);
+        assert(prev_vao_id >= 0);
+        m_previous_id = prev_vao_id;
+        elogCDebugEnabled(lcBackendOpenglBindings) std::println(elogCDebug(lcBackendOpenglBindings), "Binding VertexArray({0}): previous VertexArray({1})", m_id, m_previous_id);
         glBindVertexArray(m_id);
     }
 
     ~OpenGLVertexArrayMemo() override {
-        glBindVertexArray(0);
+        if (m_previous_id == 0 or m_previous_id == m_id) {
+            elogCDebugEnabled(lcBackendOpenglBindings) std::println(elogCDebug(lcBackendOpenglBindings), "Unbinding VertexArray({0})", m_id, m_previous_id);
+
+            glBindVertexArray(0);
+            return;
+        }
+        elogCDebugEnabled(lcBackendOpenglBindings) std::println(elogCDebug(lcBackendOpenglBindings), "Rebinding VertexArray({1}): previous VertexArray({0})", m_id, m_previous_id);
+        glBindVertexArray(m_previous_id);
     };
 };
 

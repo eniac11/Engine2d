@@ -5,6 +5,9 @@
 #include "OpenGLShaderProgram.h"
 #include "OpenGLTexture.h"
 #include "OpenGLVertexArray.h"
+#include <imgui/imgui.h>
+
+#include "imgui_impl_opengl3.h"
 
 #include "opengl_logging.h"
 
@@ -54,7 +57,7 @@ constexpr std::string debug_type_message(GLenum type) {
 
 // The callback function to handle debug messages
 void debugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
-                            const GLchar* message, const void* userParam) {
+                   const GLchar* message, const void* userParam) {
     // if (!(severity == GL_DEBUG_SEVERITY_MEDIUM || severity == GL_DEBUG_SEVERITY_HIGH)) {
     //     return;
     // }
@@ -82,6 +85,8 @@ namespace backend::graphics {
 
         // Register callback
         glDebugMessageCallback(debugCallback, nullptr);
+
+        ImGui_ImplOpenGL3_Init(nullptr);
         // if (m_enable_validation)
         // {
         //     glEnableVa
@@ -89,6 +94,16 @@ namespace backend::graphics {
     }
 
     void OpenglBackend::deinitialise() {
+        ImGui_ImplOpenGL3_Shutdown();
+    }
+
+    void OpenglBackend::begin_frame(float dt) {
+        ImGui_ImplOpenGL3_NewFrame();
+    }
+
+    void OpenglBackend::end_frame() {
+        ImDrawData* draw_data = ImGui::GetDrawData();
+        ImGui_ImplOpenGL3_RenderDrawData(draw_data);
     }
 
     std::shared_ptr<Buffer> OpenglBackend::create_buffer() {
@@ -258,26 +273,29 @@ namespace backend::graphics {
         glDrawElements(primitive_type, count, itype, reinterpret_cast<void*>(first_index));
     }
 
-    constexpr bool parse_env_true_false(std::string const& env, const bool def)
-    {
+    void OpenglBackend::draw_elements_instanced(::graphics::PrimitiveType type, std::int32_t count,
+                                                ::graphics::IndexType index_type, std::int32_t first_index,
+                                                std::int32_t instances) {
+        GLenum const primitive_type = map_primitive_type(type);
+        GLenum const itype = map_index_type(index_type);
+        glDrawElementsInstanced(primitive_type, count, itype, reinterpret_cast<void*>(first_index), instances);
+    }
+
+    constexpr bool parse_env_true_false(std::string const& env, const bool def) {
         auto evariable = std::getenv(env.c_str());
-        if (evariable != nullptr)
-        {
+        if (evariable != nullptr) {
             std::string env_var = evariable;
-            if (env_var == "true")
-            {
+            if (env_var == "true") {
                 return true;
             }
-            if (env_var == "false")
-            {
+            if (env_var == "false") {
                 return false;
             }
         }
         return def;
     }
 
-    void OpenglBackend::setup_from_env()
-    {
+    void OpenglBackend::setup_from_env() {
         m_enable_validation = parse_env_true_false("ENGINE_BACKEND_OPENGL_VALIDATION", false);
     }
 }

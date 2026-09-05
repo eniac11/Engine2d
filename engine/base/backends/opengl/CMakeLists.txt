@@ -22,11 +22,14 @@ target_sources(engine_graphics_opengl
             private/OpenGLTexture.h
             private/OpenGLShaderProgram.h
             private/opengl_logging.h
+            private/imgui_impl_opengl3.h
         PRIVATE
             src/opengl_backend.cpp
             src/OpenGLBuffer.cpp
             src/OpenGLVertexArray.cpp
             src/OpenGLShaderProgram.cpp
             src/OpenGLTexture.cpp
+            src/imgui_impl_opengl3.cpp
+            src/imgui_impl_opengl3_loader.h
 )
-target_link_libraries(engine_graphics_opengl PUBLIC engine::engine GLEW::GLEW OpenGL::OpenGL KTX::ktx)
+target_link_libraries(engine_graphics_opengl PUBLIC engine::engine GLEW::GLEW OpenGL::OpenGL KTX::ktx imgui::imgui)

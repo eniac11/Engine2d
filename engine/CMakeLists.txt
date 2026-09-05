@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
-project(Engine VERSION 0.2.0)
+project(Engine VERSION 0.3.0)
 list(PREPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 include(FeatureFindPackage)
 
@@ -95,3 +95,9 @@ export(
   EXPORT Engine2DTargets
   FILE ${CMAKE_CURRENT_BINARY_DIR}/InTree/Engine2DTargets.cmake
   NAMESPACE engine::)
+
+export(
+        EXPORT DearImGuiTargets
+        FILE ${CMAKE_CURRENT_BINARY_DIR}/InTree/DearImGuiTargets.cmake
+        NAMESPACE imgui::
+)
