@@ -1,14 +1,12 @@
-
 #include <engine/2d/Chunk.h>
-#include <glm/gtx/io.hpp>
+
 #include <engine/2d/tileset_mesher.h>
 #include <engine/RAII/binding.h>
 
+#include <glm/gtx/io.hpp>
+
 #include "tilelayer_shader.h"
 #include "e2d_logging.h"
-#include <iostream>
-
-#include "engine/Camera.h"
 
 
 // FIXME: Remove magic number

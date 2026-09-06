@@ -1,16 +1,13 @@
 #pragma once
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
 #include <engine/Camera.h>
 #include <engine/ShaderProgram.h>
 #include <engine/graphics/Texture.h>
 #include <engine/app.h>
 #include <engine/graphics/Buffer.h>
 #include <engine/graphics/VertexArray.h>
-#include <memory>
 #include <engine/2d/Chunk.h>
-#include <imgui/imgui.h>
-// #include <engine/imgui.h>
+
+#include <memory>
 
 constexpr int WINDOW_HEIGHT = 600;
 constexpr int WINDOW_WIDTH = 800;
@@ -52,4 +49,3 @@ void set_window_hints();
 
 bool check_extensions();
 
-void run(GLFWwindow* window);

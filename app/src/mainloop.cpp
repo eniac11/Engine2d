@@ -1,12 +1,5 @@
 #include "mainloop.h"
 
-#include <vfspp/NativeFileSystem.hpp>
-
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/io.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-
 #include <engine/Camera.h>
 #include <engine/2d/TileSet.h>
 #include <engine/2d/tileset_mesher.h>
@@ -14,9 +7,17 @@
 #include <engine/resources/dwarfs_fs.h>
 #include <engine/elog.h>
 #include <engine/2d/Chunk.h>
-// #include <engine/imgui.h>
 
-#include <iostream>
+#include <imgui/imgui.h>
+
+#include <vfspp/NativeFileSystem.hpp>
+
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/io.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include <array>
 #include <string_view>
 #include <memory>
@@ -25,10 +26,9 @@
 #include <generator>
 #include <chrono>
 
-
 #include "sprite_render_shader2.h"
 #include "tilemap_parse_temp.h"
-#include "imgui/imgui.h"
+
 
 
 ELOG_DECLARE_LOGGING_CATEGORY(lcGameApp, "game_app")

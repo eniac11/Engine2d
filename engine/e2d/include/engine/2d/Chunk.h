@@ -5,6 +5,9 @@
 #include <engine/graphics/backend.h>
 #include <engine/RAII/binding.h>
 
+#include <engine/Camera.h>
+#include <engine/graphics/ubo.h>
+
 
 #include <glm/vec2.hpp>
 
@@ -12,10 +15,7 @@
 #include <string>
 #include <memory>
 
-#include "engine/Camera.h"
-#include "engine/Camera.h"
-#include "engine/Camera.h"
-#include "engine/graphics/ubo.h"
+
 
 
 class TilemapRenderer;

@@ -2,7 +2,8 @@
 #pragma once
 
 #include <glm/gtc/quaternion.hpp>
-#include <glm/matrix.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <type_traits>
 

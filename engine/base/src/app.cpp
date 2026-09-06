@@ -1,11 +1,16 @@
-#include <atomic>
 #include <engine/app.h>
-#include <ktx.h>
+
 #include <engine/elog.h>
 #include <engine/StandardDirectories.h>
+
 #include <vfspp/NativeFileSystem.hpp>
 
+#include <ktx.h>
 #include <imgui/imgui.h>
+
+#include <atomic>
+#include <ranges>
+
 
 App* App::s_instance = nullptr;
 

@@ -1,13 +1,14 @@
 #pragma once
-#include <glm/glm.hpp>
-#include <GL/glew.h>
-
 #include <engine/ShaderResources.h>
-#include "graphics/Buffer.h"
-// #include "RAII/program_binding.h"
+#include <engine/graphics/Buffer.h>
+
+#include <GL/glew.h>
+#include <glm/vec3.hpp>
+#include <glm/vec2.hpp>
+#include <glm/mat4x4.hpp>
+
 #include <memory>
 #include <vector>
-#include <ranges>
 
 
 class ShaderProgram {

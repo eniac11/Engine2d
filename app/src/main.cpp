@@ -1,21 +1,25 @@
 // #define GLM_FORCE_MESSAGES
+#include "mainloop.h"
+
+#include <engine/elog.h>
+#include <engine/app.h>
+#include <engine/backends/graphics/opengl_backend.h>
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <engine/app.h>
-#include <glm/glm.hpp>
-#include <iostream>
+
+#include <backward.hpp>
+
 #include <ktx.h>
+
+#include <iostream>
 #include <memory>
 #include <stdexcept>
 
-#include <engine/elog.h>
 
 
-#include "mainloop.h"
 
 
-#include "backward.hpp"
-#include <engine/backends/graphics/opengl_backend.h>
 
 #include "imgui_impl_glfw.h"
 

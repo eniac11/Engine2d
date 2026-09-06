@@ -17,7 +17,6 @@
 #include <string>
 #include <vector>
 #include <cstdint>
-#include <utility>
 #include <map>
 
 class tilemap_parse_temp {
