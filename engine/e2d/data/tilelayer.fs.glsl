@@ -1,4 +1,5 @@
 #version 450 core
+#include "tile_packing.glsl"
 //#include "Chunk.glsl"
 struct TileIds {
     uint packed_tileids[1024];
@@ -19,14 +20,7 @@ layout(std430, binding = 0) readonly buffer TileIDBuffer
     uint packed_tileids[];
 };
 
-bool is_bit_set(uint packed_data, int n) {
-    return bool((packed_data >> n) & 1u);
-}
-uint chop_nth_hi_bits(uint bits, uint n) {
-    bits = bits << n;
-    bits = bits >> n;
-    return bits;
-}
+
 
 void main() {
     uint packed_tileid = packed_tileids[tileid_offset];

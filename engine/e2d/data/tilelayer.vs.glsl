@@ -1,4 +1,5 @@
 #version 450 core
+#include "tile_packing.glsl"
 struct TileIds {
     uint packed_tileid[1024];
 };
