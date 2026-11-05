@@ -1,12 +1,17 @@
 #pragma once
 #include <array>
 #include <atomic>
+#include <cassert>
 #include <format>
 #include <random>
 #include <string>
 #include <ostream>
 #include <iterator>
 #include <chrono>
+#include <ranges>
+#include <algorithm>
+#include <print>
+
 #include "engine/resources/sha1.h"
 
 
@@ -17,17 +22,50 @@ struct  uuid : _uuid {
 
 };
 
+constexpr uuid uuid_string_to_uuid(std::string uuid_string) {
+    auto it = std::ranges::remove(uuid_string, '-');
+    uuid_string.erase(it.begin(), it.end());
+    if (uuid_string.size() != 32) {
+        throw std::domain_error("UUID size mismatch");
+    }
+    std::array<std::uint8_t, 16> buffer{};
+    buffer.fill(0);
+    int offset = 0;
+    for (int i = 0; i < 16; i++) {
+        std::string hex = uuid_string.substr(i*2, 2);
+
+        auto [ptr, ec] = std::from_chars(hex.data(), hex.data()+2, buffer[offset], 16);
+        // buffer[offset] = byte;
+        if (ec != std::errc()) {
+            throw std::domain_error("Could not parse uuid invalid hex");
+        }
+        offset++;
+    }
+    assert(offset == 16);
+    return uuid(buffer);
+}
+
+// constexpr uuid uuid_string_to_uuid(std::string const& uuid_string) {
+//     return uuid_string_to_uuid(std::string_view(uuid_string.data(), uuid_string.size()));
+// }
+
+namespace engine::uuid_literals {
+    constexpr uuid operator ""_uuid(const char* str, size_t N ) {
+        std::string view(str, N);
+        return uuid_string_to_uuid(view);
+    }
+}; // namespace engine::uuid_literals;
+
 template<>
-struct std::formatter<uuid> {
-    template<class ParseContext>
-    constexpr typename ParseContext::iterator parse(ParseContext& context) {
-        return context.begin();
+struct std::formatter<uuid> : std::range_formatter<uuid::value_type> {
+    constexpr formatter() {
+        // Set custom opening/closing brackets and separator
+        this->set_brackets("", "");
+        this->set_separator("");
+
     }
 
-    template <class FormatContext>
-    typename FormatContext::iterator format(uuid value, FormatContext& context) const {
-        return std::format_to(context.out(), "{:n}", static_cast<_uuid>(value));
-    }
+
 };
 
 

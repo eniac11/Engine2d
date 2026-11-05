@@ -35,7 +35,6 @@ target_sources(engine
             # include/engine/models/Mesh.h
             # include/engine/models/Model.h
             include/engine/RAII/binding.h
-            include/engine/uuid.h
             include/engine/resources/texturestore.h
             include/engine/resources/sha1.h
             include/engine/resources/dwarfs_fs.h
