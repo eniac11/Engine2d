@@ -51,6 +51,20 @@ generate_shader_reflection_header(compute_shader)
 add_executable(game_app)
 target_sources(game_app
     PRIVATE
+    FILE_SET private_headers
+    TYPE HEADERS
+    BASE_DIRS private
+    FILES
+        private/game_components/Entity.h
+        private/game_components/EntityFactory.h
+        private/game_components/EntityFactoryRegistry.h
+        private/game_components/PlayerEntity.h
+        private/game_components/DoorEntity.h
+        private/game_components/ButtonEntity.h
+        private/game_components/EntityField.h
+        private/game_components/EntityFieldTypeRegistry.h
+
+    PRIVATE
       src/main.cpp
       src/mainloop.cpp
       src/mainloop.h
@@ -58,6 +72,18 @@ target_sources(game_app
       src/tilemap_parse_temp.h
       src/imgui_impl_glfw.cpp
       src/imgui_impl_glfw.h
+
+        src/game_components/Entity.cpp
+        src/game_components/EntityFactory.cpp
+        src/game_components/EntityFactoryRegistry.cpp
+        src/game_components/PlayerEntity.cpp
+        src/game_components/DoorEntity.cpp
+        src/game_components/ButtonEntity.cpp
+        src/game_components/EntityField.cpp
+        src/game_components/EntityFieldTypeRegistry.cpp
+
+        src/register_game_components.cpp
+        src/register_game_components.h
 )
 target_link_libraries(game_app PRIVATE Backward::Backward glfw engine::engine engine::e2d sprite_render_shader sprite_render_shader2 engine_graphics_opengl imgui::imgui)
 

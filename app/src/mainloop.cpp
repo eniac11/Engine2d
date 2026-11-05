@@ -25,7 +25,12 @@
 #include <numeric>
 #include <generator>
 #include <chrono>
+#include <engine/2d/Sprite.h>
+#include <json/reader.h>
+#include <ldtk_parser/project.h>
+#include <ldtk_parser/reader.h>
 
+#include "register_game_components.h"
 #include "sprite_render_shader2.h"
 #include "tilemap_parse_temp.h"
 
@@ -324,6 +329,87 @@ void MyApp::setup() {
 
     m_renderer = TilemapRenderer::create(m_graphics_backend.get());
 
+    // Load Level
+    auto file = m_virtualFileSystem->OpenFile("/data/topdown_example.ldtk", vfspp::IFile::FileMode::Read);
+    size_t file_size = file->Size();
+    std::vector<std::uint8_t> buffer(file_size);
+    file->Read(buffer);
+
+    const char* begin = reinterpret_cast<const char*>(buffer.data());
+    const char* end = begin + buffer.size();
+    Json::Value root;
+
+    Json::CharReaderBuilder builder;
+    auto reader = builder.newCharReader();
+    Json::String errs;
+    if (!reader->parse(begin, end, &root, &errs)) {
+        throw std::runtime_error(errs);
+    }
+    delete reader;
+
+
+    project_ = ldtk::parse_project_json(root);
+    // project.loadFromMemory(buffer);
+
+    EntityContext ctx;
+
+    // Initialise the Entity registry
+    m_registry = std::make_unique<EntityFactoryRegistry>();
+    register_game_components(*m_registry);
+    m_registry->register_defs(ctx, project_);
+
+    // auto const& world = project.getWorld(ldtk::IID("c9ef2d10-c640-11ed-ad34-f553e1d803f9"));
+
+    auto const& world = project_.get_world(uuid_string_to_uuid("c9ef2d10-c640-11ed-ad34-f553e1d803f9"));;
+    auto const& level = world.get_level(uuid_string_to_uuid("d53f9950-c640-11ed-8430-4942c04951ff"));
+
+    // auto it= (level.layers.at;
+    auto const& entitys = level.layers.at(uuid_string_to_uuid("d53f9951-c640-11ed-8430-3f3f71a3daf1")).entities;
+    // auto const& buttons = layer.getEntitiesByName("Button");
+    // auto const& doors = layer.getEntitiesByName("Door");
+    // assert(entitys.size() == 1);
+    // assert(!buttons.empty());
+    // assert(!doors.empty());
+
+    std::vector<uint32_t> factory_ids = m_registry->get_factory_ids();
+
+    for (auto const& [iid, entity] : entitys) {
+        if (!std::ranges::contains(factory_ids, entity.entity_def_uid)) {
+            continue;
+        }
+        auto [_, e] = m_registry->instantiate_entity(ctx, entity.entity_def_uid, entity);
+        constructed_entities.push_back(e);
+    }
+
+    // auto [_, player] = m_registry->instantiate_entity(ctx, 59, entitys[0]);
+    // constructed_entities.push_back(player);
+    //
+    // for (auto const& entity : buttons) {
+    //     auto [_, door] = m_registry->instantiate_entity(ctx, 105, entity);
+    //     constructed_entities.push_back(door);
+    // }
+    //
+    // // std::vector<std::shared_ptr<Entity>> constructed_doors{};
+    // for (auto const& entity : doors) {
+    //     auto [_, door] = m_registry->instantiate_entity(ctx, 62, entity);
+    //     constructed_entities.push_back(door);
+    // }
+
+    m_sprite_render = std::make_unique<sprite_renderer>(*m_graphics_backend);
+    m_sprite_render->update_matrices(camera);
+
+    for (auto const& ent : constructed_entities) {
+        ent->debug_log();
+        m_sprites.emplace_back(ent->transform, ent->get_colour(), 0);
+    }
+
+    m_field_type_registry = std::make_unique<EntityFieldTypeRegistry>();
+    register_entity_field_types(*m_field_type_registry);
+
+
+    // auto player = m_registry->instantiate_entity(62);
+    // player->debug_log();
+
     // IMGUI_CHECKVERSION();
     // ImGui::CreateContext();
     // ImGuiIO& io = ImGui::GetIO();
@@ -389,40 +475,117 @@ void MyApp::update(float dt) {
             srgb_fb_dirty = true;
         }
         ImGui::End();
-        // app_log.Draw("Example: Log");
-        // BindingHandle handle(texture2, 0);
-        //
-        m_renderer->begin_drawing(4, camera);
-        m_renderer->draw(*m_graphics_backend, *layer4);
-        m_renderer->draw(*m_graphics_backend, *layer3);
-        m_renderer->draw(*m_graphics_backend, *layer2);
-        m_renderer->draw(*m_graphics_backend, *layer1);
-        m_renderer->end_drawing();
+        // std::vector<const char*> factory_names;
+        static std::optional<uint32_t> selected_factory;
+        static bool selected_factory_dirty = false;
+        static std::optional<uuid> selected_entity;
 
-        // BindingHandle vao_binding(vao2);
-        // BindingHandle program_binding(program2);
-        //
-        // program2->set_uniform(sprite_render_shader2::get_uniform_location("model"),
-        //                       glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f)),
-        //                                  glm::vec3(32.0f, 32.0f, 1.0f)));
-        // program2->set_uniform(sprite_render_shader2::get_uniform_location("layer"), 1.0f);
-        //
-        // if (auto tb = tileid_buffer1_handle.lock()) {
-        //     vao2->bind_buffer_to_attrib(tb, sprite_render_shader2::get_input_location("tileId").location);
-        //     // glDrawElements(GL_TRIANGLES, 16 * 16 * 6, GL_UNSIGNED_INT, nullptr);
-        //     m_graphics_backend->draw_elements(graphics::PrimitiveType::TRIANGLES, 16*16*6, graphics::IndexType::UNSIGNED_INT, 0);
-        //
-        // }
-        // // glVertexArrayAttribBinding(vao2->get_id(), sprite_render_shader2::get_input_location("tileId").location, tileid_binding_index1);
-        // program2->set_uniform(sprite_render_shader2::get_uniform_location("model"),
-        //                       glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(32.0f * 16, 0.0f, 0.0f)),
-        //                                  glm::vec3(32.0f, 32.0f, 1.0f)));
-        // program2->set_uniform(sprite_render_shader2::get_uniform_location("layer"), 0.5f);
-        // if (auto tb = tileid_buffer2_handle.lock()) {
-        //     vao2->bind_buffer_to_attrib(tb, sprite_render_shader2::get_input_location("tileId").location);
-        //     // m_graphics_backend->draw_elements(graphics::PrimitiveType::TRIANGLES, 16*16*6, graphics::IndexType::UNSIGNED_INT, 0);
-        //     glDrawElements(GL_TRIANGLES, 16 * 16 * 6, GL_UNSIGNED_INT, nullptr);
-        // }
+        ImGui::Begin("Entities");
+        if (ImGui::BeginListBox("Factories")) {
+            for (auto const& factory_id : m_registry->get_factory_ids()) {
+                auto& factory = m_registry->get_factory(factory_id);
+                // factory_names.push_back(factory.name().c_str());
+                const bool is_selected = (selected_factory == factory_id);
+                if (ImGui::Selectable(factory.name().c_str(), is_selected)) {
+                    if (selected_factory && *selected_factory != factory_id) {
+                        selected_factory_dirty = true;
+                    }
+                    selected_factory = factory_id;
+                }
+            }
+            ImGui::EndListBox();
+        }
+
+        // Clear the uuid if the type of entity has changed to avoid show an entity that is not selected.
+        // i.e. clear selection
+        if (selected_factory_dirty) {
+            selected_entity.reset();
+            selected_factory_dirty = false;
+        }
+        if (selected_factory) {
+            auto& factory = m_registry->get_factory(*selected_factory);
+            if (ImGui::BeginListBox("Entities2")) {
+
+                for (auto const& entity : constructed_entities
+                     | std::views::filter([uid=factory.type_id()](auto const& e) {
+                         return e->get_uid() == uid;
+                     })) {
+                    const bool is_selected = (selected_entity == entity->get_instance_id());
+                ImGui::PushID(&entity->get_instance_id());
+                    if (ImGui::Selectable(factory.name().c_str(), is_selected)) {
+                        selected_entity = entity->get_instance_id();
+                    }
+                    ImGui::PopID();
+                     }
+                ImGui::EndListBox();
+            }
+            if (selected_entity) {
+                auto it = std::ranges::find_if(constructed_entities, [se=selected_entity](auto const& entity) {
+                    return entity->get_instance_id() == se;
+                });
+                if (it != constructed_entities.end()) {
+                    // if (ImGui::BeginChild("Fields")) {
+                        auto editor = factory.get_editor(*it);
+                        for (auto uid : editor->enumerate_fields()) {
+                            // auto& e = *editor;
+                            auto& field = editor->get_field(uid);
+                            m_field_type_registry->render_field(field);
+                            // ImGui::Selectable(std::format("{}", field.name()).c_str(), false);
+                        }
+                    if (editor->needs_saving()) {
+                        editor->save();
+                    }
+                        // ImGui::EndChild();
+                    // }
+                }
+            }
+        }
+        ImGui::End();
+
+
+
     }
-    ImGui::ShowDemoWindow();
+
+
+    // ImGui::ListBox("Factories", nullptr, factory_names.data(), factory_names.size());
+    // app_log.Draw("Example: Log");
+    // BindingHandle handle(texture2, 0);
+
+
+
+    m_renderer->begin_drawing(4, camera);
+    m_renderer->draw(*m_graphics_backend, *layer4);
+    m_renderer->draw(*m_graphics_backend, *layer3);
+    m_renderer->draw(*m_graphics_backend, *layer2);
+    m_renderer->draw(*m_graphics_backend, *layer1);
+    m_renderer->end_drawing();
+
+    for (auto const& sprite : m_sprites) {
+        m_sprite_render->render(*m_graphics_backend, sprite);
+    }
+    
+    // BindingHandle vao_binding(vao2);
+    // BindingHandle program_binding(program2);
+    //
+    // program2->set_uniform(sprite_render_shader2::get_uniform_location("model"),
+    //                       glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f)),
+    //                                  glm::vec3(32.0f, 32.0f, 1.0f)));
+    // program2->set_uniform(sprite_render_shader2::get_uniform_location("layer"), 1.0f);
+    //
+    // if (auto tb = tileid_buffer1_handle.lock()) {
+    //     vao2->bind_buffer_to_attrib(tb, sprite_render_shader2::get_input_location("tileId").location);
+    //     // glDrawElements(GL_TRIANGLES, 16 * 16 * 6, GL_UNSIGNED_INT, nullptr);
+    //     m_graphics_backend->draw_elements(graphics::PrimitiveType::TRIANGLES, 16*16*6, graphics::IndexType::UNSIGNED_INT, 0);
+    //
+    // }
+    // // glVertexArrayAttribBinding(vao2->get_id(), sprite_render_shader2::get_input_location("tileId").location, tileid_binding_index1);
+    // program2->set_uniform(sprite_render_shader2::get_uniform_location("model"),
+    //                       glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(32.0f * 16, 0.0f, 0.0f)),
+    //                                  glm::vec3(32.0f, 32.0f, 1.0f)));
+    // program2->set_uniform(sprite_render_shader2::get_uniform_location("layer"), 0.5f);
+    // if (auto tb = tileid_buffer2_handle.lock()) {
+    //     vao2->bind_buffer_to_attrib(tb, sprite_render_shader2::get_input_location("tileId").location);
+    //     // m_graphics_backend->draw_elements(graphics::PrimitiveType::TRIANGLES, 16*16*6, graphics::IndexType::UNSIGNED_INT, 0);
+    //     glDrawElements(GL_TRIANGLES, 16 * 16 * 6, GL_UNSIGNED_INT, nullptr);
+    // }
 }
