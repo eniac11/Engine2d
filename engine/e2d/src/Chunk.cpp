@@ -186,7 +186,7 @@ void TilemapRenderer::begin_drawing(uint32_t layer_count, Camera const& camera) 
     m_tilelayer_shader->set_uniform(tilelayer_shader::get_uniform_location("view"), camera.view());
 }
 
-void TilemapRenderer::draw(graphics::GraphicsBackend* backend, TilemapLayer const& layer) {
+void TilemapRenderer::draw(graphics::GraphicsBackend& backend, TilemapLayer const& layer) {
     // Always bind shader because the current shader may have changed as layers are separate from the renderer and
     // other rendering code may have run.
     BindingHandle shader_handle(m_tilelayer_shader);
@@ -216,7 +216,7 @@ void TilemapRenderer::draw(graphics::GraphicsBackend* backend, TilemapLayer cons
             //       allows the same index to reference different vertex data
             // TODO: use glMultiDrawElementsBaseVertex
             // FIXME: remove magic number
-        backend->draw_elements_instanced(graphics::PrimitiveType::TRIANGLES, 16*16*6, graphics::IndexType::UNSIGNED_INT, 0, 1+std::int32_t(chunk.n_tile_stacks));
+        backend.draw_elements_instanced(graphics::PrimitiveType::TRIANGLES, 16*16*6, graphics::IndexType::UNSIGNED_INT, 0, 1+std::int32_t(chunk.n_tile_stacks));
         // chunk.tile_stack_ssbo->unbind();
         // }
         // uint32_t stack_count = 0;

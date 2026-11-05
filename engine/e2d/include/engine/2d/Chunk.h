@@ -69,6 +69,6 @@ class TilemapRenderer {
 
     static std::shared_ptr<TilemapRenderer> create(graphics::GraphicsBackend* backend);
     void begin_drawing(uint32_t layer_count, Camera const& camera);
-    void draw(graphics::GraphicsBackend* backend, TilemapLayer const& layer);
+    void draw(graphics::GraphicsBackend& backend, TilemapLayer const& layer);
     void end_drawing();
 };

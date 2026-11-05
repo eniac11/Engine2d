@@ -393,10 +393,10 @@ void MyApp::update(float dt) {
         // BindingHandle handle(texture2, 0);
         //
         m_renderer->begin_drawing(4, camera);
-        m_renderer->draw(m_graphics_backend.get(), *layer4);
-        m_renderer->draw(m_graphics_backend.get(), *layer3);
-        m_renderer->draw(m_graphics_backend.get(), *layer2);
-        m_renderer->draw(m_graphics_backend.get(), *layer1);
+        m_renderer->draw(*m_graphics_backend, *layer4);
+        m_renderer->draw(*m_graphics_backend, *layer3);
+        m_renderer->draw(*m_graphics_backend, *layer2);
+        m_renderer->draw(*m_graphics_backend, *layer1);
         m_renderer->end_drawing();
 
         // BindingHandle vao_binding(vao2);
