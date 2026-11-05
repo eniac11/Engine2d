@@ -101,3 +101,6 @@ export(
         FILE ${CMAKE_CURRENT_BINARY_DIR}/InTree/DearImGuiTargets.cmake
         NAMESPACE imgui::
 )
+export(TARGETS ldtk_parser_io ldtk_parser utils beman.indirect
+        FILE ${CMAKE_CURRENT_BINARY_DIR}/InTree/ldtk_parser-targets.cmake
+)

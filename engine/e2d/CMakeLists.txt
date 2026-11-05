@@ -7,10 +7,18 @@ fetchcontent_declare(ARGPARSE
         FIND_PACKAGE_ARGS 3.1
 )
 
-fetchcontent_declare(LDTKLOADER
-        GIT_REPOSITORY https://github.com/eniac11/LDtkLoader.git
-        GIT_TAG c51e7f5887c323ce1ecc6ca04aa908d75e3c65d7
-        FIND_PACKAGE_ARGS 1.5
+FetchContent_Declare(
+        beman_indirect
+        GIT_REPOSITORY https://github.com/bemanproject/indirect.git
+        GIT_TAG 36579dd72730156afed6247abf24835a222d7368
+        FIND_PACKAGE_ARGS 0.1.0 NAMES beman.indirect
+)
+
+
+fetchcontent_declare(
+        ldtk_parser
+        GIT_REPOSITORY https://github.com/eniac11/ldtk_parser.git
+        FIND_PACKAGE_ARGS 0.1 NAMES ldtk_parser
 )
 
 
@@ -18,9 +26,10 @@ feature_find_package(Vulkan RECOMMENDED)
 feature_find_package(OpenImageIO 2.4 RECOMMENDED)
 feature_find_package(Ktx RECOMMENDED)
 fetchcontent_makeavailable(ARGPARSE)
-fetchcontent_makeavailable(LDTKLOADER)
+#fetchcontent_makeavailable(LDTKLOADER)
 # set_package_properties(LDTKLOADER PROPERTIES TYPE REQUIRED)
 #feature_find_package(ARGPARSE RUNTIME)
+fetchcontent_makeavailable(ldtk_parser beman_indirect)
 feature_find_package(Backward)
 #set_package_properties(ARGPARSE PROPERTIES TYPE RUNTIME)
 
@@ -82,7 +91,7 @@ target_sources(e2d
             src/sprite_renderer.cpp
 
 )
-target_link_libraries(e2d PUBLIC engine::engine PRIVATE LDtkLoader tilelayer_shader sprite_shader)
+target_link_libraries(e2d PUBLIC engine::engine ldtk_parser ldtk_parser_io PRIVATE  tilelayer_shader sprite_shader)
 
 add_library(engine::e2d ALIAS e2d)
 add_library(engine::tilelayer_shader ALIAS tilelayer_shader)
