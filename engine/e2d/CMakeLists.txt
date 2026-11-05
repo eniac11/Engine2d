@@ -52,6 +52,10 @@ add_spirv_shader(tilelayer_shader VERTEX data/tilelayer.vs.glsl FRAGMENT data/ti
 target_include_directories(tilelayer_shader PRIVATE data)
 generate_shader_reflection_header(tilelayer_shader)
 
+add_spirv_shader(sprite_shader VERTEX data/Sprite.vs.glsl FRAGMENT data/Sprite.fs.glsl)
+target_include_directories(sprite_shader PRIVATE data)
+generate_shader_reflection_header(sprite_shader)
+
 add_library(e2d)
 target_sources(e2d
         PUBLIC
@@ -62,6 +66,8 @@ target_sources(e2d
             include/engine/2d/TileSet.h
             include/engine/2d/tileset_mesher.h
             include/engine/2d/Chunk.h
+            include/engine/2d/Sprite.h
+            include/engine/2d/sprite_renderer.h
         PRIVATE
         FILE_SET private_headers
         TYPE HEADERS
@@ -72,12 +78,15 @@ target_sources(e2d
             src/TileSet.cpp
             src/tileset_mesher.cpp
             src/Chunk.cpp
+            src/Sprite.cpp
+            src/sprite_renderer.cpp
 
 )
-target_link_libraries(e2d PUBLIC engine::engine PRIVATE LDtkLoader tilelayer_shader)
+target_link_libraries(e2d PUBLIC engine::engine PRIVATE LDtkLoader tilelayer_shader sprite_shader)
 
 add_library(engine::e2d ALIAS e2d)
 add_library(engine::tilelayer_shader ALIAS tilelayer_shader)
+add_library(engine::sprite_shader ALIAS sprite_shader)
 add_executable(engine::e2d_generate_texture_array_atlas2 ALIAS e2d_generate_texture_array_atlas2)
 
 add_feature_info(IMAGE_ATLAS_GENERATOR
@@ -88,7 +97,7 @@ add_feature_info(IMAGE_ATLAS_GENERATOR
 include(GNUInstallDirs)
 
 
-install(TARGETS e2d tilelayer_shader EXPORT Engine2DTargets
+install(TARGETS e2d tilelayer_shader sprite_shader EXPORT Engine2DTargets
         LIBRARY
         INCLUDES
         FILE_SET public_headers
