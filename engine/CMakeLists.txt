@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.28)
-project(Engine VERSION 0.3.0)
+project(Engine VERSION 0.4.0)
 list(PREPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 include(FeatureFindPackage)
 
