@@ -33,6 +33,8 @@
 #include "register_game_components.h"
 #include "sprite_render_shader2.h"
 #include "tilemap_parse_temp.h"
+#include <entt/entity/entity.hpp>
+#include <entt/tools/davey.hpp>
 
 
 
@@ -108,6 +110,7 @@ std::generator<std::uint32_t> generate_tileids(int bound) {
 
 void MyApp::setup() {
     WindowedApp::setup();
+    registry_ = entt::registry();
     // elog::Elogger::global_logger().install_log_handler(elog::handlers::sd_journal_handler);
     elog::Elogger::global_logger().install_filter_rules("engine.backends.*.bindings{debug}=false");
     // if (!m_virtualFileSystem->CreateFileSystem<dwarfs_fs>("/data", "data/assets.dwarfs")) {
@@ -365,6 +368,9 @@ void MyApp::setup() {
     // assert(!doors.empty());
 
     for (auto const& [iid, entity] : entitys) {
+        entt::entity ent = registry_.create();
+        auto tr = registry_.emplace<Transform2d>(ent, Transform2d());
+        tr.position(entity.grid_position);
     }
 
 
@@ -432,6 +438,9 @@ void MyApp::update(float dt) {
     // ImGui::NewFrame();
     // ImGui::ShowDemoWindow();
     {
+        ImGui::Begin("Registry");
+        entt::davey(registry_);
+        ImGui::End();
         ImGui::Begin("Backend State");
         if (ImGui::Checkbox("Enable depth test", &depth_test)) {
             depth_test_dirty = true;

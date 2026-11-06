@@ -29,7 +29,7 @@ set(CMAKE_CXX_EXTENSIONS  OFF)
 feature_find_package(Backward CONFIG REQUIRED)
 feature_find_package(glfw3 3.3 REQUIRED)
 feature_find_package(Engine 0.1 REQUIRED COMPONENTS Elog Base 2D)
-
+feature_find_package(EnTT REQUIRED)
 
 
 #feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
@@ -65,7 +65,7 @@ target_sources(game_app
       src/imgui_impl_glfw.cpp
       src/imgui_impl_glfw.h
 )
-target_link_libraries(game_app PRIVATE Backward::Backward glfw engine::engine engine::e2d sprite_render_shader sprite_render_shader2 engine_graphics_opengl imgui::imgui)
+target_link_libraries(game_app PRIVATE Backward::Backward glfw engine::engine engine::e2d sprite_render_shader sprite_render_shader2 engine_graphics_opengl imgui::imgui EnTT::EnTT)
 
 
 install(TARGETS game_app sprite_render_shader sprite_render_shader2

@@ -10,6 +10,7 @@
 #include <memory>
 #include <engine/2d/sprite_renderer.h>
 #include <ldtk_parser/project.h>
+#include <entt/entity/registry.hpp>
 
 struct Sprite;
 constexpr int WINDOW_HEIGHT = 600;
@@ -49,6 +50,7 @@ class MyApp : public WindowedApp {
         std::unique_ptr<sprite_renderer> m_sprite_render;
         std::vector<Sprite> m_sprites;
         ldtk::Project project_;
+        entt::registry registry_;
 };
 
 void set_window_hints();
