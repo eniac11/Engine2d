@@ -21,7 +21,6 @@
 
 
 struct Sprite {
-    Transform2d transform;
     glm::vec4 colour;
     uint32_t tileid;
     std::shared_ptr<Texture> tileset;
@@ -32,8 +31,8 @@ struct GPUSprite {
     glm::vec4 colour;
     uint32_t tileid;
 
-    explicit GPUSprite(Sprite const& sprite)
-        : transform(sprite.transform.transformation_matrix()),
+    explicit GPUSprite(Sprite const& sprite, Transform2d const& transform)
+        : transform(transform.transformation_matrix()),
           colour(sprite.colour),
           tileid(sprite.tileid) {
     }

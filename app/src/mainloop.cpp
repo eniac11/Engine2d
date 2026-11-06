@@ -25,16 +25,19 @@
 #include <numeric>
 #include <generator>
 #include <chrono>
+
 #include <engine/2d/Sprite.h>
 #include <json/reader.h>
 #include <ldtk_parser/project.h>
 #include <ldtk_parser/reader.h>
 
-#include "register_game_components.h"
 #include "sprite_render_shader2.h"
 #include "tilemap_parse_temp.h"
+#include <components/entity_tags.h>
+
 #include <entt/entity/entity.hpp>
 #include <entt/tools/davey.hpp>
+#include <entt/meta/factory.hpp>
 
 
 
@@ -366,11 +369,71 @@ void MyApp::setup() {
     // assert(entitys.size() == 1);
     // assert(!buttons.empty());
     // assert(!doors.empty());
+    entt::meta_factory<Sprite>()
+            .type("Sprite")
+            .data<&Sprite::colour>("colour")
+    .data<&Sprite::tileid>("tileid");
+    entt::meta_factory<PlayerComponent> meta_player{};
+    meta_player
+    .type("PlayerComponent")
+    .data<&PlayerComponent::ammo>("ammo")
+    .data<&PlayerComponent::life>("life")
+    .base<LDtkEntityComponent>();
+    entt::meta_factory<DoorComponent>()
+        .type("DoorCompoent")
+        .data<&DoorComponent::unlocked_by>("unlocked_by")
+    .base<LDtkEntityComponent>();
+
+    entt::meta_factory<LDtkEntityComponent>()
+        .type("LdtkEntity")
+        .data<&LDtkEntityComponent::colour>("colour")
+    .data<&LDtkEntityComponent::uid>("uid")
+    .data<&LDtkEntityComponent::instance_id>("instance_id");
+
+
 
     for (auto const& [iid, entity] : entitys) {
         entt::entity ent = registry_.create();
-        auto tr = registry_.emplace<Transform2d>(ent, Transform2d());
-        tr.position(entity.grid_position);
+        auto& tr = registry_.emplace<Transform2d>(ent);
+        tr.position(entity.grid_position*glm::ivec2{16, 16});
+        tr.scale({16,16});
+        registry_.emplace<Sprite>(ent, Sprite{glm::vec4(1), 0});
+
+        if (entity.def->uid == 59) {
+            auto const& life_it = std::ranges::find_if(entity.fields, [](auto const& field) {
+                return field->def_uid == 61 && field->type == ldtk::FieldType::Int;
+            });
+            auto const& flife = *life_it;
+            auto const& life_field = dynamic_cast<ldtk::getFieldInstanceType<ldtk::FieldType::Int> const&>(*flife);
+
+            auto const& ammo_it = std::ranges::find_if(entity.fields, [](auto const& field) {
+                return field->def_uid == 60 && field->type == ldtk::FieldType::Int;
+            });
+            auto const& fammo = *ammo_it;
+            auto const& ammo_field = dynamic_cast<ldtk::getFieldInstanceType<ldtk::FieldType::Int> const&>(*fammo);
+
+            if (life_field.value && ammo_field.value) {
+                auto const& ammo = ammo_field.value.value();
+                auto const& life = life_field.value.value();
+                registry_.emplace<PlayerComponent>(ent, PlayerComponent(entity.entity_def_uid, entity.iid, glm::vec4(1), life, ammo));
+            }
+        }
+        if (entity.def->uid == 62) {
+            std::println(elogInfo(), "{}, {}", entity.fields[0]->name, entity.fields[0]->def_uid);
+            auto const& lockedWith_it = std::ranges::find_if(entity.fields, [](auto const& field) {
+                return field->def_uid == 69 && field->type == ldtk::FieldType::Enum;
+            });
+            auto const& flockedWith = *lockedWith_it;
+            auto const& lockedWith_field = dynamic_cast<ldtk::getFieldInstanceType<ldtk::FieldType::Enum> const&>(*flockedWith);
+
+            components::Enum e{};
+            if (lockedWith_field.value) {
+                auto const& lockedWith = lockedWith_field.value.value();
+                e.enum_value = lockedWith.value;
+            }
+            registry_.emplace<DoorComponent>(ent, DoorComponent(entity.entity_def_uid, entity.iid, glm::vec4(1), e));
+
+        }
     }
 
 
@@ -465,8 +528,10 @@ void MyApp::update(float dt) {
     m_renderer->draw(*m_graphics_backend, *layer1);
     m_renderer->end_drawing();
 
-    for (auto const& sprite : m_sprites) {
-        m_sprite_render->render(*m_graphics_backend, sprite);
+    auto const& sprite_view = registry_.view<Transform2d, Sprite>();
+    for (auto const& ent : sprite_view) {
+        auto const& [transform, sprite] = sprite_view.get(ent);
+        m_sprite_render->render(*m_graphics_backend, sprite, transform);
     }
 
     // BindingHandle vao_binding(vao2);

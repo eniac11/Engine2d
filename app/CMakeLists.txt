@@ -55,7 +55,8 @@ target_sources(game_app
     TYPE HEADERS
     BASE_DIRS private
     FILES
-
+        private/components/entity_tags.h
+        private/game_components/DataTypes.h
     PRIVATE
       src/main.cpp
       src/mainloop.cpp

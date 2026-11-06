@@ -20,6 +20,8 @@
 #include <engine/ShaderProgram.h>
 #include <memory>
 #include <engine/Camera.h>
+#include <engine/2d/Chunk.h>
+#include <engine/2d/Chunk.h>
 #include <engine/graphics/ubo.h>
 #include <engine/2d/Sprite.h>
 
@@ -32,5 +34,5 @@ class sprite_renderer {
 
         void update_matrices(Camera const& camera);
 
-        void render(graphics::GraphicsBackend& backend, Sprite const& sprite);
+        void render(graphics::GraphicsBackend& backend, Sprite const& sprite, Transform2d const& transform);
 };

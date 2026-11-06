@@ -63,9 +63,10 @@ void sprite_renderer::update_matrices(Camera const& camera) {
     m_sprite_shader->set_uniform(sprite_shader::get_uniform_location("view"), camera.view());
 }
 
-void sprite_renderer::render(graphics::GraphicsBackend& backend, Sprite const& sprite) {
+void sprite_renderer::render(graphics::GraphicsBackend& backend, Sprite const& sprite, Transform2d const& transform) {
     glDisable(GL_DEPTH_TEST);
-    m_sprite_ubo.update(GPUSprite(sprite));
+    
+    m_sprite_ubo.update(GPUSprite(sprite, transform));
     m_sprite_ubo.bind();
     BindingHandle shader_handle(m_sprite_shader);
     BindingHandle vao_handle(m_vao);
