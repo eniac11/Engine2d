@@ -9,8 +9,6 @@
 
 #include <memory>
 #include <engine/2d/sprite_renderer.h>
-#include <game_components/EntityFactoryRegistry.h>
-#include <game_components/EntityFieldTypeRegistry.h>
 #include <ldtk_parser/project.h>
 
 struct Sprite;
@@ -48,11 +46,8 @@ class MyApp : public WindowedApp {
         bool depth_test_dirty =false;
         bool srgb_fb_dirty = false;
         bool srgb_fb = true;
-        std::unique_ptr<EntityFactoryRegistry> m_registry;
         std::unique_ptr<sprite_renderer> m_sprite_render;
         std::vector<Sprite> m_sprites;
-        std::vector<std::shared_ptr<Entity>> constructed_entities;
-        std::unique_ptr<EntityFieldTypeRegistry> m_field_type_registry;
         ldtk::Project project_;
 };
 

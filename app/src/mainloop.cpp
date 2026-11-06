@@ -351,13 +351,6 @@ void MyApp::setup() {
     project_ = ldtk::parse_project_json(root);
     // project.loadFromMemory(buffer);
 
-    EntityContext ctx;
-
-    // Initialise the Entity registry
-    m_registry = std::make_unique<EntityFactoryRegistry>();
-    register_game_components(*m_registry);
-    m_registry->register_defs(ctx, project_);
-
     // auto const& world = project.getWorld(ldtk::IID("c9ef2d10-c640-11ed-ad34-f553e1d803f9"));
 
     auto const& world = project_.get_world(uuid_string_to_uuid("c9ef2d10-c640-11ed-ad34-f553e1d803f9"));;
@@ -371,40 +364,12 @@ void MyApp::setup() {
     // assert(!buttons.empty());
     // assert(!doors.empty());
 
-    std::vector<uint32_t> factory_ids = m_registry->get_factory_ids();
-
     for (auto const& [iid, entity] : entitys) {
-        if (!std::ranges::contains(factory_ids, entity.entity_def_uid)) {
-            continue;
-        }
-        auto [_, e] = m_registry->instantiate_entity(ctx, entity.entity_def_uid, entity);
-        constructed_entities.push_back(e);
     }
 
-    // auto [_, player] = m_registry->instantiate_entity(ctx, 59, entitys[0]);
-    // constructed_entities.push_back(player);
-    //
-    // for (auto const& entity : buttons) {
-    //     auto [_, door] = m_registry->instantiate_entity(ctx, 105, entity);
-    //     constructed_entities.push_back(door);
-    // }
-    //
-    // // std::vector<std::shared_ptr<Entity>> constructed_doors{};
-    // for (auto const& entity : doors) {
-    //     auto [_, door] = m_registry->instantiate_entity(ctx, 62, entity);
-    //     constructed_entities.push_back(door);
-    // }
 
     m_sprite_render = std::make_unique<sprite_renderer>(*m_graphics_backend);
     m_sprite_render->update_matrices(camera);
-
-    for (auto const& ent : constructed_entities) {
-        ent->debug_log();
-        m_sprites.emplace_back(ent->transform, ent->get_colour(), 0);
-    }
-
-    m_field_type_registry = std::make_unique<EntityFieldTypeRegistry>();
-    register_entity_field_types(*m_field_type_registry);
 
 
     // auto player = m_registry->instantiate_entity(62);
@@ -475,75 +440,6 @@ void MyApp::update(float dt) {
             srgb_fb_dirty = true;
         }
         ImGui::End();
-        // std::vector<const char*> factory_names;
-        static std::optional<uint32_t> selected_factory;
-        static bool selected_factory_dirty = false;
-        static std::optional<uuid> selected_entity;
-
-        ImGui::Begin("Entities");
-        if (ImGui::BeginListBox("Factories")) {
-            for (auto const& factory_id : m_registry->get_factory_ids()) {
-                auto& factory = m_registry->get_factory(factory_id);
-                // factory_names.push_back(factory.name().c_str());
-                const bool is_selected = (selected_factory == factory_id);
-                if (ImGui::Selectable(factory.name().c_str(), is_selected)) {
-                    if (selected_factory && *selected_factory != factory_id) {
-                        selected_factory_dirty = true;
-                    }
-                    selected_factory = factory_id;
-                }
-            }
-            ImGui::EndListBox();
-        }
-
-        // Clear the uuid if the type of entity has changed to avoid show an entity that is not selected.
-        // i.e. clear selection
-        if (selected_factory_dirty) {
-            selected_entity.reset();
-            selected_factory_dirty = false;
-        }
-        if (selected_factory) {
-            auto& factory = m_registry->get_factory(*selected_factory);
-            if (ImGui::BeginListBox("Entities2")) {
-
-                for (auto const& entity : constructed_entities
-                     | std::views::filter([uid=factory.type_id()](auto const& e) {
-                         return e->get_uid() == uid;
-                     })) {
-                    const bool is_selected = (selected_entity == entity->get_instance_id());
-                ImGui::PushID(&entity->get_instance_id());
-                    if (ImGui::Selectable(factory.name().c_str(), is_selected)) {
-                        selected_entity = entity->get_instance_id();
-                    }
-                    ImGui::PopID();
-                     }
-                ImGui::EndListBox();
-            }
-            if (selected_entity) {
-                auto it = std::ranges::find_if(constructed_entities, [se=selected_entity](auto const& entity) {
-                    return entity->get_instance_id() == se;
-                });
-                if (it != constructed_entities.end()) {
-                    // if (ImGui::BeginChild("Fields")) {
-                        auto editor = factory.get_editor(*it);
-                        for (auto uid : editor->enumerate_fields()) {
-                            // auto& e = *editor;
-                            auto& field = editor->get_field(uid);
-                            m_field_type_registry->render_field(field);
-                            // ImGui::Selectable(std::format("{}", field.name()).c_str(), false);
-                        }
-                    if (editor->needs_saving()) {
-                        editor->save();
-                    }
-                        // ImGui::EndChild();
-                    // }
-                }
-            }
-        }
-        ImGui::End();
-
-
-
     }
 
 
@@ -563,7 +459,7 @@ void MyApp::update(float dt) {
     for (auto const& sprite : m_sprites) {
         m_sprite_render->render(*m_graphics_backend, sprite);
     }
-    
+
     // BindingHandle vao_binding(vao2);
     // BindingHandle program_binding(program2);
     //
