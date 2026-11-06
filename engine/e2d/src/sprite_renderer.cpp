@@ -64,13 +64,19 @@ void sprite_renderer::update_matrices(Camera const& camera) {
 }
 
 void sprite_renderer::render(graphics::GraphicsBackend& backend, Sprite const& sprite, Transform2d const& transform) {
-    glDisable(GL_DEPTH_TEST);
-    
+    GLboolean depth_test = GL_FALSE;
+    glGetBooleanv(GL_DEPTH_TEST, &depth_test);
+    if (depth_test == GL_TRUE) {
+        glDisable(GL_DEPTH_TEST);
+    }
+
     m_sprite_ubo.update(GPUSprite(sprite, transform));
     m_sprite_ubo.bind();
     BindingHandle shader_handle(m_sprite_shader);
     BindingHandle vao_handle(m_vao);
     backend.draw_elements(graphics::PrimitiveType::TRIANGLES, 6, graphics::IndexType::UNSIGNED_INT, 0);
     m_sprite_ubo.unbind();
-    glEnable(GL_DEPTH_TEST);
+    if (depth_test == GL_TRUE) {
+        glEnable(GL_DEPTH_TEST);
+    }
 }
